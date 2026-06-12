@@ -1,0 +1,6 @@
+{
+  "_comment": "全題庫入口檔。skill 一律先讀此檔，不逐檔掃描。新增試卷請依 corpus/INGEST.md 程序更新本檔。",
+  "levels": ["師", "士"],
+  "years": [],
+  "papers": []
+}

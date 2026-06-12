@@ -1,0 +1,14 @@
+{
+  "name": "fire-safety-personnel-tutor-marketplace",
+  "owner": {
+    "name": "yyc1217",
+    "email": "yyc1217@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "fire-safety-personnel-tutor",
+      "source": "./",
+      "description": "消防設備師／士國家考試備考工具：考情趨勢預測與家教式出題批改。"
+    }
+  ]
+}
