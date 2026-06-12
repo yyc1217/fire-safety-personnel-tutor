@@ -1,6 +1,38 @@
 {
   "_comment": "全題庫入口檔。skill 一律先讀此檔，不逐檔掃描。新增試卷請依 corpus/INGEST.md 程序更新本檔。",
   "levels": ["師", "士"],
-  "years": [],
-  "papers": []
+  "years": ["114"],
+  "papers": [
+    {
+      "level": "師",
+      "year": "114",
+      "subject": "0802",
+      "name": "消防法規",
+      "md": "師/114/0802_消防法規.md",
+      "pdf": "師/114/0802_消防法規.pdf",
+      "ans_pdf": "師/114/0802_消防法規_答案.pdf",
+      "exam_code": "114050",
+      "paper_code": "40120",
+      "test_code": "2401",
+      "types": ["申論", "測驗"],
+      "q_count": 42,
+      "q_detail": {"申論": 2, "測驗": 40},
+      "has_figure": false,
+      "law_snapshot": "114年6月"
+    },
+    {
+      "level": "師",
+      "year": "114",
+      "subject": "0803",
+      "name": "警報系統消防安全設備",
+      "md": "師/114/0803_警報系統消防安全設備.md",
+      "pdf": "師/114/0803_警報系統消防安全設備.pdf",
+      "exam_code": "114050",
+      "paper_code": "40130",
+      "types": ["申論"],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "114年6月"
+    }
+  ]
 }
