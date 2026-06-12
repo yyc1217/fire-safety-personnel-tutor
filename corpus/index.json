@@ -7,7 +7,8 @@
   "years": [
     "114",
     "113",
-    "112"
+    "112",
+    "111"
   ],
   "papers": [
     {
@@ -318,6 +319,109 @@
       "q_count": 4,
       "has_figure": false,
       "law_snapshot": "112年6月"
+    },
+    {
+      "level": "師",
+      "year": "111",
+      "subject": "0801",
+      "name": "火災學",
+      "md": "師/111/0801_火災學.md",
+      "pdf": "師/111/0801_火災學.pdf",
+      "exam_code": "111060",
+      "paper_code": "40110",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "111年6月"
+    },
+    {
+      "level": "師",
+      "year": "111",
+      "subject": "0802",
+      "name": "消防法規",
+      "md": "師/111/0802_消防法規.md",
+      "pdf": "師/111/0802_消防法規.pdf",
+      "exam_code": "111060",
+      "paper_code": "40120",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "has_figure": false,
+      "law_snapshot": "111年6月",
+      "ans_pdf": "師/111/0802_消防法規_答案.pdf",
+      "test_code": "2401",
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      }
+    },
+    {
+      "level": "師",
+      "year": "111",
+      "subject": "0803",
+      "name": "警報系統消防安全設備",
+      "md": "師/111/0803_警報系統消防安全設備.md",
+      "pdf": "師/111/0803_警報系統消防安全設備.pdf",
+      "exam_code": "111060",
+      "paper_code": "40130",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": true,
+      "law_snapshot": "111年6月"
+    },
+    {
+      "level": "師",
+      "year": "111",
+      "subject": "0804",
+      "name": "避難系統消防安全設備",
+      "md": "師/111/0804_避難系統消防安全設備.md",
+      "pdf": "師/111/0804_避難系統消防安全設備.pdf",
+      "exam_code": "111060",
+      "paper_code": "40140",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "111年6月"
+    },
+    {
+      "level": "師",
+      "year": "111",
+      "subject": "0805",
+      "name": "水系統消防安全設備",
+      "md": "師/111/0805_水系統消防安全設備.md",
+      "pdf": "師/111/0805_水系統消防安全設備.pdf",
+      "exam_code": "111060",
+      "paper_code": "40150",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "111年6月"
+    },
+    {
+      "level": "師",
+      "year": "111",
+      "subject": "0806",
+      "name": "化學系統消防安全設備",
+      "md": "師/111/0806_化學系統消防安全設備.md",
+      "pdf": "師/111/0806_化學系統消防安全設備.pdf",
+      "exam_code": "111060",
+      "paper_code": "40160",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "111年6月"
     }
   ]
 }
