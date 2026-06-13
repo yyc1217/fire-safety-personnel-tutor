@@ -25,8 +25,8 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 │   ├── index.json           # 全題庫入口（清單與中繼資料，含 等別 師/士）
 │   ├── equipment_index.md   # 消防安全設備清單（單元邊界與頻率統計對照）
 │   ├── INGEST.md            # 納入新年度題庫的人工流程
-│   ├── 師/<年>/<代碼>_<科目>.md ＋ 同名 .pdf（原卷，供查圖）
-│   └── 士/<年>/…
+│   ├── md/                  # AI 讀取用之轉換文字（師/<年>/、士/<年>/）
+│   └── pdf/                 # 原始 PDF：原卷＋答案卷（師/<年>/、士/<年>/）
 ├── statutes/                # 命題大綱法規現行全文 md（使用者手動整理）
 │   └── index.md             # 法規清單、檔名對照與整理格式規範
 └── skills/
@@ -37,7 +37,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 
 ## 題庫現況
 
-`corpus/師/` 已收錄**民國 100–114 年消防設備師六科全卷**（共 90 卷）：每卷含轉換後的 md 全文與原卷 PDF；消防法規科另含官方測驗式試題標準答案（106、108 年含更正答案卷，md 內答案以更正後為準）。消防設備士（士）各科尚未收錄。
+**設備師（師）**：民國 100–115 年六科原卷 PDF 全數入庫；100–114 年 md 已轉換（90 卷），115 年與消防法規答案待轉。**設備士（士）**：100–115 年四科（火災學概要、消防法規概要、警報與避難系統概要、水與化學系統概要）原卷與答案 PDF 全數入庫，md 轉換進行中。md 與 PDF 分置於 `corpus/md/` 與 `corpus/pdf/`。轉換進度見 `corpus/_INGEST_PROGRESS2.md`。
 
 ## 資料準備
 
