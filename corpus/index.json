@@ -18,7 +18,8 @@
     "104",
     "103",
     "102",
-    "101"
+    "101",
+    "100"
   ],
   "papers": [
     {
@@ -1464,6 +1465,109 @@
       "q_count": 4,
       "has_figure": false,
       "law_snapshot": "101年6月"
+    },
+    {
+      "level": "師",
+      "year": "100",
+      "subject": "0901",
+      "name": "火災學",
+      "md": "師/100/0901_火災學.md",
+      "pdf": "師/100/0901_火災學.pdf",
+      "exam_code": "100090",
+      "paper_code": "90110",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "100年6月"
+    },
+    {
+      "level": "師",
+      "year": "100",
+      "subject": "0902",
+      "name": "消防法規",
+      "md": "師/100/0902_消防法規.md",
+      "pdf": "師/100/0902_消防法規.pdf",
+      "exam_code": "100090",
+      "paper_code": "90120",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "has_figure": false,
+      "law_snapshot": "100年6月",
+      "ans_pdf": "師/100/0902_消防法規_答案.pdf",
+      "test_code": "2901",
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      }
+    },
+    {
+      "level": "師",
+      "year": "100",
+      "subject": "0903",
+      "name": "警報系統消防安全設備",
+      "md": "師/100/0903_警報系統消防安全設備.md",
+      "pdf": "師/100/0903_警報系統消防安全設備.pdf",
+      "exam_code": "100090",
+      "paper_code": "90130",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "100年6月"
+    },
+    {
+      "level": "師",
+      "year": "100",
+      "subject": "0904",
+      "name": "避難系統消防安全設備",
+      "md": "師/100/0904_避難系統消防安全設備.md",
+      "pdf": "師/100/0904_避難系統消防安全設備.pdf",
+      "exam_code": "100090",
+      "paper_code": "90140",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "100年6月"
+    },
+    {
+      "level": "師",
+      "year": "100",
+      "subject": "0905",
+      "name": "水系統消防安全設備",
+      "md": "師/100/0905_水系統消防安全設備.md",
+      "pdf": "師/100/0905_水系統消防安全設備.pdf",
+      "exam_code": "100090",
+      "paper_code": "90150",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "100年6月"
+    },
+    {
+      "level": "師",
+      "year": "100",
+      "subject": "0906",
+      "name": "化學系統消防安全設備",
+      "md": "師/100/0906_化學系統消防安全設備.md",
+      "pdf": "師/100/0906_化學系統消防安全設備.pdf",
+      "exam_code": "100090",
+      "paper_code": "90160",
+      "types": [
+        "申論"
+      ],
+      "q_count": 4,
+      "has_figure": false,
+      "law_snapshot": "100年6月"
     }
   ]
 }
