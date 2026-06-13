@@ -4,6 +4,7 @@
 
 - **`/fire-safety-personnel-tutor:exam-tutor`** — 家教模式：依考古題風格出題（頻率排序、單一設備連續提問、先問後等再解）、收作答、0–100 分批改，講解時引用法條全文（條／項／款／目階層）。
 - **`/fire-safety-personnel-tutor:exam-trend-forecast`** — 考情分析：結合歷年考點分布與近 12–24 個月的法規修正、行政函令、重大時事，產出「法規脈動／技術實務／時事預測」三類趨勢報告（附依據與信心程度）。
+- **`/fire-safety-personnel-tutor:exam-archive`** — 檔案庫查詢：列出題庫清單、提供指定年度科目的原卷 PDF、標準答案卷或單題原文。
 
 所有內容與產出均為繁體中文。
 
@@ -30,15 +31,18 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 │   └── index.md             # 法規清單、檔名對照與整理格式規範
 └── skills/
     ├── exam-tutor/SKILL.md
-    └── exam-trend-forecast/SKILL.md
+    ├── exam-trend-forecast/SKILL.md
+    └── exam-archive/SKILL.md
 ```
 
-## 資料準備（安裝後必讀）
+## 題庫現況
 
-本 repo 目前**只含骨架**，題庫與法條需自行放入：
+`corpus/師/` 已收錄**民國 100–114 年消防設備師六科全卷**（共 90 卷）：每卷含轉換後的 md 全文與原卷 PDF；消防法規科另含官方測驗式試題標準答案（106、108 年含更正答案卷，md 內答案以更正後為準）。消防設備士（士）各科尚未收錄。
 
-1. **考古題**：依 [`corpus/INGEST.md`](corpus/INGEST.md) 自考選部下載官方 PDF、轉成 md、更新 `corpus/index.json`。
-2. **法條**：依 [`statutes/index.md`](statutes/index.md) 的清單與格式規範，自全國法規資料庫整理現行全文 md 放入 `statutes/`。
+## 資料準備
+
+1. **考古題**：新增年度或士類試卷時，依 [`corpus/INGEST.md`](corpus/INGEST.md) 自考選部下載官方 PDF、轉成 md、更新 `corpus/index.json`。
+2. **法條**：依 [`statutes/index.md`](statutes/index.md) 的清單與格式規範，自全國法規資料庫整理現行全文 md 放入 `statutes/`（目前僅含索引骨架，法條 md 待放入）。
 
 skill 對 `corpus/` 與 `statutes/` 一律唯讀。學習進度紀錄存放於使用者自己的電腦（plugin 之外），位置與格式於執行時由使用者決定。
 
