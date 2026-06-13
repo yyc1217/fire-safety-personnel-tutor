@@ -1672,6 +1672,29 @@
       "q_count": 4,
       "has_figure": false,
       "law_snapshot": "100年6月"
+    },
+    {
+      "level": "士",
+      "year": "115",
+      "subject": "0807",
+      "name": "火災學概要",
+      "md": "md/士/115/0807_火災學概要.md",
+      "pdf": "pdf/士/115/0807_火災學概要.pdf",
+      "ans_pdf": "pdf/士/115/0807_火災學概要_答案.pdf",
+      "exam_code": "115050",
+      "paper_code": "40210",
+      "test_code": "1402",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      },
+      "has_figure": false,
+      "law_snapshot": "115年6月"
     }
   ]
 }
