@@ -1857,6 +1857,99 @@
       },
       "has_figure": false,
       "law_snapshot": "114年6月"
+    },
+    {
+      "level": "士",
+      "year": "113",
+      "subject": "0807",
+      "name": "火災學概要",
+      "md": "md/士/113/0807_火災學概要.md",
+      "pdf": "pdf/士/113/0807_火災學概要.pdf",
+      "ans_pdf": "pdf/士/113/0807_火災學概要_答案.pdf",
+      "exam_code": "113050",
+      "paper_code": "40210",
+      "test_code": "1402",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      },
+      "has_figure": false,
+      "law_snapshot": "113年6月"
+    },
+    {
+      "level": "士",
+      "year": "113",
+      "subject": "0808",
+      "name": "消防法規概要",
+      "md": "md/士/113/0808_消防法規概要.md",
+      "pdf": "pdf/士/113/0808_消防法規概要.pdf",
+      "ans_pdf": "pdf/士/113/0808_消防法規概要_答案.pdf",
+      "exam_code": "113050",
+      "paper_code": "40220",
+      "test_code": "2402",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      },
+      "has_figure": false,
+      "law_snapshot": "113年6月"
+    },
+    {
+      "level": "士",
+      "year": "113",
+      "subject": "0809",
+      "name": "警報與避難系統消防安全設備概要",
+      "md": "md/士/113/0809_警報與避難系統消防安全設備概要.md",
+      "pdf": "pdf/士/113/0809_警報與避難系統消防安全設備概要.pdf",
+      "ans_pdf": "pdf/士/113/0809_警報與避難系統消防安全設備概要_答案.pdf",
+      "exam_code": "113050",
+      "paper_code": "40230",
+      "test_code": "3402",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      },
+      "has_figure": true,
+      "law_snapshot": "113年6月",
+      "mod_ans_pdf": "pdf/士/113/0809_警報與避難系統消防安全設備概要_更正答案.pdf"
+    },
+    {
+      "level": "士",
+      "year": "113",
+      "subject": "0810",
+      "name": "水與化學系統消防安全設備概要",
+      "md": "md/士/113/0810_水與化學系統消防安全設備概要.md",
+      "pdf": "pdf/士/113/0810_水與化學系統消防安全設備概要.pdf",
+      "ans_pdf": "pdf/士/113/0810_水與化學系統消防安全設備概要_答案.pdf",
+      "exam_code": "113050",
+      "paper_code": "40240",
+      "test_code": "4402",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      },
+      "has_figure": false,
+      "law_snapshot": "113年6月"
     }
   ]
 }
