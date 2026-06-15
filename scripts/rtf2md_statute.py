@@ -91,13 +91,15 @@ def rtf_to_text(data: str) -> str:
 # ---------- 第二階段：純文字 → 結構化 Markdown ----------
 RE_CHAP = re.compile(r'^第\s*[一二三四五六七八九十百]+\s*章(之[一二三四五六七八九十]+)?\s')
 RE_ART  = re.compile(r'^第\s*\d+(-\d+)?\s*條$')
-RE_CLAUSE = re.compile(r'^(\d+)\s{2,}(.*)$')
+RE_CLAUSE = re.compile(r'^(\d+)\s{2,}(.*)$')          # 項：數字＋多空白
 RE_NAME = re.compile(r'^法規名稱[：:]\s*(.+)$')
-RE_DATE = re.compile(r'^修正日期[：:]\s*(.+)$')
+RE_DATE = re.compile(r'^(修正|發布|訂定|公發布|公布)日期[：:]\s*(.+)$')
 
 def text_to_md(text: str) -> str:
+    """產出符合 statutes/index.md 格式規範的 md：
+    # 法規名 / > 來源｜版本日期 / 章為粗體列 / ## 第 X 條 / 項款目階層。"""
     lines = text.split('\n')
-    name = date = None
+    name = date = date_label = None
     body = []
     for ln in lines:
         s = ln.strip()
@@ -111,35 +113,40 @@ def text_to_md(text: str) -> str:
             name = m.group(1).strip(); continue
         m = RE_DATE.match(s)
         if m and date is None:
-            date = m.group(1).strip(); continue
+            date_label = m.group(1).strip()
+            date = m.group(2).strip(); continue
         body.append(s)
 
     md = []
     title = name or '（未命名法規）'
     md.append(f'# {title}\n')
-    md.append('> 資料來源：全國法規資料庫（使用者上傳 RTF 轉換）')
-    if date:
-        md.append(f'> 修正日期：{date}')
+    ver = f'版本日期：{date}（{date_label}）' if date else '版本日期：（原檔未標注，請核對官方來源）'
+    md.append(f'> 來源：全國法規資料庫（使用者上傳 RTF 轉換）｜{ver}')
     md.append('>')
-    md.append('> ⚠️ **法規快照**：本檔為入庫當下之版本，引用前請與全國法規資料庫核對是否為現行有效版本。\n')
+    md.append('> ⚠️ **法規快照**：本檔為入庫當下之版本，引用前請依 index.md「法規時效」核對官方現行版本。\n')
 
     for s in body:
         if RE_CHAP.match(s):
-            # 正規化章標題空白：第 一 章之一 名稱 → 第一章之一　名稱
+            # 章：正規化空白後以粗體列呈現（條一律為 ## 主標題，章不佔標題層級）
             chap = re.sub(r'^第\s*([一二三四五六七八九十百]+)\s*章(之[一二三四五六七八九十]+)?\s*',
                           lambda mm: f'第{mm.group(1)}章{mm.group(2) or ""}　', s)
-            md.append(f'\n## {chap}\n')
+            md.append(f'\n**{chap}**\n')
         elif RE_ART.match(s):
             art = re.sub(r'\s+', ' ', s)
-            md.append(f'\n### {art}\n')
+            md.append(f'\n## {art}\n')
         else:
             mc = RE_CLAUSE.match(s)
             if mc:
-                md.append(f'{int(mc.group(1))}. {mc.group(2).strip()}')
+                # 項：第 N 項　全文
+                md.append(f'第 {int(mc.group(1))} 項　{mc.group(2).strip()}')
             else:
+                # 款（一、）、目（（一））、或單項條文全文，原樣保留
                 md.append(s)
-    out = '\n'.join(md)
+    # 段落間以空行分隔，符合規範可讀性
+    out = '\n\n'.join(md)
     out = re.sub(r'\n{3,}', '\n\n', out)
+    # 標題與其後段落間維持單一空行
+    out = re.sub(r'(^|\n)(#+ .+|\*\*第.+章.*\*\*)\n\n', r'\1\2\n\n', out)
     return out.strip() + '\n'
 
 def main():
@@ -153,8 +160,8 @@ def main():
     md = text_to_md(text)
     with open(dst, 'w', encoding='utf-8') as f:
         f.write(md)
-    arts = len(re.findall(r'^### 第', md, re.M))
-    chaps = len(re.findall(r'^## ', md, re.M))
+    arts = len(re.findall(r'^## 第', md, re.M))
+    chaps = len(re.findall(r'^\*\*第.+章', md, re.M))
     print(f'OK：{src} -> {dst}（{chaps} 章、{arts} 條）')
 
 if __name__ == '__main__':
