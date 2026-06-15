@@ -25,6 +25,7 @@ RE_MARK = re.compile(
     r'第[一二三四五六七八九十]+章|'
     r'[一二三四五六七八九十]+、|'                     # 一、
     r'（[一二三四五六七八九十]+）|'                   # （一）
+    r'\(\s*[一二三四五六七八九十]+\s*\)|'             # (一) 半形括號
     r'[１２３４５６７８９０]+、|'                       # １、(全形)
     r'（[１２３４５６７８９０]+）|'                     # （１）(全形)
     r'\([0-9]+\)|[0-9]+[.、]|'                          # (1) / 1.
@@ -52,9 +53,14 @@ def is_noise(line):
         return True
     return False
 
+# 壹貳參…大段標題（認可基準型）：行首大寫數字＋頓號，標題短
+RE_DASEC = re.compile(r'^(壹|貳|參|肆|伍|陸|柒|捌|玖|拾)、\s*(.+?)\s*$')
+
 def is_toc_line(line):
-    """目錄行：『第X章 名稱 …… N-N』含章名與頁碼。"""
+    """目錄行：含點引導線（………）並以頁碼結尾，或『第X章 名稱 …… N-N』。"""
     t = line.strip()
+    if re.search(r'[.．…]{4,}\s*[0-9]+(-[0-9]+)*\s*$', t):
+        return True
     return bool(re.match(r'^第[一二三四五六七八九十]+章.*\s[0-9]+(-[0-9]+)+\s*$', t))
 
 def convert(text, name, date, source):
@@ -113,6 +119,11 @@ def convert(text, name, date, source):
             flush()
             zhi = mc.group(2) or ''
             md.append(f'\n## 第{mc.group(1)}章{zhi}　{mc.group(3)}\n')
+            continue
+        md_sec = RE_DASEC.match(s)
+        if md_sec and len(s) < 30:  # 壹貳參…大段標題
+            flush()
+            md.append(f'\n## {md_sec.group(1)}、{md_sec.group(2)}\n')
             continue
         if RE_MARK.match(s):
             flush()
