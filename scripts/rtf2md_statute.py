@@ -15,7 +15,15 @@
 - 行首「1   」「2   」…（數字＋多個空白）→ 項次，轉為有序清單
 - 其餘段落原樣保留
 """
-import sys, re
+import sys, re, os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from html2md_statute import try_markdown_table, is_sep, BOX
+
+def _is_box_line(s):
+    """判斷 stripped 行是否為框線表格的一部分（含 │ 或全為框線字元）。"""
+    if not s:
+        return False
+    return '│' in s or set(s) <= BOX
 
 # ---------- 第一階段：RTF → 純文字 ----------
 def rtf_to_text(data: str) -> str:
@@ -89,7 +97,11 @@ def rtf_to_text(data: str) -> str:
     return text.strip()
 
 # ---------- 第二階段：純文字 → 結構化 Markdown ----------
+# 結構階層（大 → 小）：編 → 章 → 節 → 條。編／章／節皆以粗體呈現，
+# 條一律為 ## 主標題（skill 以 `^## 第` 定位條文，故結構層不佔標題層級）。
+RE_PART = re.compile(r'^第\s*[一二三四五六七八九十百]+\s*編(之[一二三四五六七八九十]+)?\s')
 RE_CHAP = re.compile(r'^第\s*[一二三四五六七八九十百]+\s*章(之[一二三四五六七八九十]+)?\s')
+RE_SECT = re.compile(r'^第\s*[一二三四五六七八九十百]+\s*節(之[一二三四五六七八九十]+)?\s')
 RE_ART  = re.compile(r'^第\s*\d+(-\d+)?\s*條$')
 RE_CLAUSE = re.compile(r'^(\d+)\s{2,}(.*)$')          # 項：數字＋多空白
 RE_NAME = re.compile(r'^法規名稱[：:]\s*(.+)$')
@@ -125,12 +137,38 @@ def text_to_md(text: str) -> str:
     md.append('>')
     md.append('> ⚠️ **法規快照**：本檔為入庫當下之版本，引用前請依 index.md「法規時效」核對官方現行版本。\n')
 
-    for s in body:
-        if RE_CHAP.match(s):
+    i = 0
+    while i < len(body):
+        s = body[i]
+        # 框線表格：聚集連續框線行，乾淨表轉 markdown，複雜表無損保留框線
+        if _is_box_line(s):
+            j = i
+            while j < len(body) and _is_box_line(body[j]):
+                j += 1
+            tlines = body[i:j]
+            tbl = try_markdown_table(tlines)
+            if tbl:
+                md.append(tbl)
+            else:
+                md.append('```\n' + '\n'.join(tlines) + '\n```')
+            i = j
+            continue
+        i += 1
+        if RE_PART.match(s):
+            # 編：最上層結構，正規化空白後以粗體列呈現
+            part = re.sub(r'^第\s*([一二三四五六七八九十百]+)\s*編(之[一二三四五六七八九十]+)?\s*',
+                          lambda mm: f'第{mm.group(1)}編{mm.group(2) or ""}　', s)
+            md.append(f'\n**{part}**\n')
+        elif RE_CHAP.match(s):
             # 章：正規化空白後以粗體列呈現（條一律為 ## 主標題，章不佔標題層級）
             chap = re.sub(r'^第\s*([一二三四五六七八九十百]+)\s*章(之[一二三四五六七八九十]+)?\s*',
                           lambda mm: f'第{mm.group(1)}章{mm.group(2) or ""}　', s)
             md.append(f'\n**{chap}**\n')
+        elif RE_SECT.match(s):
+            # 節：正規化空白後以粗體列呈現
+            sect = re.sub(r'^第\s*([一二三四五六七八九十百]+)\s*節(之[一二三四五六七八九十]+)?\s*',
+                          lambda mm: f'第{mm.group(1)}節{mm.group(2) or ""}　', s)
+            md.append(f'\n**{sect}**\n')
         elif RE_ART.match(s):
             art = re.sub(r'\s+', ' ', s)
             md.append(f'\n## {art}\n')
@@ -146,7 +184,7 @@ def text_to_md(text: str) -> str:
     out = '\n\n'.join(md)
     out = re.sub(r'\n{3,}', '\n\n', out)
     # 標題與其後段落間維持單一空行
-    out = re.sub(r'(^|\n)(#+ .+|\*\*第.+章.*\*\*)\n\n', r'\1\2\n\n', out)
+    out = re.sub(r'(^|\n)(#+ .+|\*\*第.+[編章節].*\*\*)\n\n', r'\1\2\n\n', out)
     return out.strip() + '\n'
 
 def main():
