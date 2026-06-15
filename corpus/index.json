@@ -3061,6 +3061,98 @@
       },
       "has_figure": false,
       "law_snapshot": "101年6月"
+    },
+    {
+      "level": "士",
+      "year": "100",
+      "subject": "0907",
+      "name": "火災學概要",
+      "md": "md/士/100/0907_火災學概要.md",
+      "pdf": "pdf/士/100/0907_火災學概要.pdf",
+      "ans_pdf": "pdf/士/100/0907_火災學概要_答案.pdf",
+      "exam_code": "100050",
+      "paper_code": "90210",
+      "test_code": "1902",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      },
+      "has_figure": false,
+      "law_snapshot": "100年6月"
+    },
+    {
+      "level": "士",
+      "year": "100",
+      "subject": "0908",
+      "name": "消防法規概要",
+      "md": "md/士/100/0908_消防法規概要.md",
+      "pdf": "pdf/士/100/0908_消防法規概要.pdf",
+      "ans_pdf": "pdf/士/100/0908_消防法規概要_答案.pdf",
+      "exam_code": "100050",
+      "paper_code": "90220",
+      "test_code": "2902",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      },
+      "has_figure": false,
+      "law_snapshot": "100年6月"
+    },
+    {
+      "level": "士",
+      "year": "100",
+      "subject": "0909",
+      "name": "警報與避難系統消防安全設備概要",
+      "md": "md/士/100/0909_警報與避難系統消防安全設備概要.md",
+      "pdf": "pdf/士/100/0909_警報與避難系統消防安全設備概要.pdf",
+      "ans_pdf": "pdf/士/100/0909_警報與避難系統消防安全設備概要_答案.pdf",
+      "exam_code": "100050",
+      "paper_code": "90230",
+      "test_code": "3902",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      },
+      "has_figure": false,
+      "law_snapshot": "100年6月"
+    },
+    {
+      "level": "士",
+      "year": "100",
+      "subject": "0910",
+      "name": "水與化學系統消防安全設備概要",
+      "md": "md/士/100/0910_水與化學系統消防安全設備概要.md",
+      "pdf": "pdf/士/100/0910_水與化學系統消防安全設備概要.pdf",
+      "ans_pdf": "pdf/士/100/0910_水與化學系統消防安全設備概要_答案.pdf",
+      "exam_code": "100050",
+      "paper_code": "90240",
+      "test_code": "4902",
+      "types": [
+        "申論",
+        "測驗"
+      ],
+      "q_count": 42,
+      "q_detail": {
+        "申論": 2,
+        "測驗": 40
+      },
+      "has_figure": true,
+      "law_snapshot": "100年6月"
     }
   ]
 }
