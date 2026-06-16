@@ -53,8 +53,9 @@ def is_noise(line):
         return True
     return False
 
-# 壹貳參…大段標題（認可基準型）：行首大寫數字＋頓號，標題短
-RE_DASEC = re.compile(r'^(壹|貳|參|肆|伍|陸|柒|捌|玖|拾)、\s*(.+?)\s*$')
+# 壹貳參…大段標題（認可基準型）：行首大寫數字＋頓號，標題短且**不以中文數字開頭**
+# （排除頁眉如「壹、二十一」「壹、三十一」之頁碼型running header）
+RE_DASEC = re.compile(r'^(壹|貳|參|肆|伍|陸|柒|捌|玖|拾)、\s*([^一二三四五六七八九十百\d\s].*?)\s*$')
 
 def is_toc_line(line):
     """目錄行：含點引導線（………）並以頁碼結尾，或『第X章 名稱 …… N-N』。"""
@@ -101,10 +102,19 @@ def convert(text, name, date, source):
             return True
         return False
 
+    # 部分認可基準 PDF 以寬字距排版，CJK 字元間夾單一空白；合併之以利閱讀
+    _cjk = r'[　-〿㐀-䶿一-鿿＀-￯，、。：；（）「」]'
+    def collapse_cjk(s):
+        prev = None
+        while prev != s:
+            prev = s
+            s = re.sub(f'({_cjk}) +({_cjk})', r'\1\2', s)
+        return s
+
     buf = []
     def flush():
         if buf:
-            md.append(''.join(s.strip() for s in buf))
+            md.append(collapse_cjk(''.join(s.strip() for s in buf)))
             buf.clear()
 
     for ln in lines:
@@ -146,6 +156,14 @@ def convert(text, name, date, source):
         else:
             cleaned.append(par); run = 0
     md = cleaned
+
+    # 去除連續重複之標題（目錄殘留與本文標題重複時）
+    dedup = []
+    for par in md:
+        if par.startswith('## ') and dedup and dedup[-1].strip() == par.strip():
+            continue
+        dedup.append(par)
+    md = dedup
 
     out = '\n\n'.join(md)
     out = re.sub(r'\n{3,}', '\n\n', out)
