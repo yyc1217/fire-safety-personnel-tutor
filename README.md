@@ -37,12 +37,14 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 
 ## 題庫現況
 
-**設備師（師）**：民國 100–115 年六科原卷 PDF 全數入庫；100–114 年 md 已轉換（90 卷），115 年與消防法規答案待轉。**設備士（士）**：100–115 年四科（火災學概要、消防法規概要、警報與避難系統概要、水與化學系統概要）原卷與答案 PDF 全數入庫，md 轉換進行中。md 與 PDF 分置於 `corpus/md/` 與 `corpus/pdf/`。轉換進度見 `corpus/_INGEST_PROGRESS2.md`。
+**設備師（師）**：民國 100–115 年六科、**設備士（士）**：100–115 年四科，原卷 PDF 與 md 均全數入庫。md 與 PDF 分置於 `corpus/md/` 與 `corpus/pdf/`。全庫共 3360 題，已逐題標籤（題型／系統／設備／法規／**條號**／知識領域／旗標），索引見 `corpus/tags_index.json`（產生器 `scripts/build_tags.py`，維度說明見 `docs/設計_題目標籤系統.md`）。
+
+**法條**：命題大綱所列法規（`statutes/index.md` 第一～四節）已全數整理為現行全文 md。
 
 ## 資料準備
 
 1. **考古題**：新增年度或士類試卷時，依 [`corpus/INGEST.md`](corpus/INGEST.md) 自考選部下載官方 PDF、轉成 md、更新 `corpus/index.json`。
-2. **法條**：依 [`statutes/index.md`](statutes/index.md) 的清單與格式規範，自全國法規資料庫整理現行全文 md 放入 `statutes/`（目前僅含索引骨架，法條 md 待放入）。
+2. **法條**：依 [`statutes/index.md`](statutes/index.md) 的清單與格式規範，自全國法規資料庫／消防署整理現行全文 md 放入 `statutes/`（命題大綱所列法規已全數入庫；附表附圖待人工核對項見 `docs/待核對清單.md`）。
 
 skill 對 `corpus/` 與 `statutes/` 一律唯讀。學習進度紀錄存放於使用者自己的電腦（plugin 之外），位置與格式於執行時由使用者決定。
 

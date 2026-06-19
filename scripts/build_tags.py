@@ -90,6 +90,81 @@ TOPICS = [
 ]
 
 
+# ── 法條（條號）擷取 ───────────────────────────────────────────
+# 法規短名（供條號前綴）；較具體/較長者在前，避免「消防法」誤搶「消防法施行細則」。
+LAW_SHORT = [
+    (["消防法施行細則"], "施行細則"),
+    (["各類場所消防安全設備設置標準", "設置標準"], "設置標準"),
+    (["公共危險物品", "可燃性高壓氣體", "安全管理辦法"], "公危辦法"),
+    (["建築技術規則"], "建築技術規則"),
+    (["建築法"], "建築法"),
+    (["各類場所消防安全設備檢修及申報作業基準", "檢修及申報", "檢修基準"], "檢修基準"),
+    (["消防安全設備測試報告書", "測試方法及判定要領", "測試報告書"], "測試報告書"),
+    (["消防設備師及消防設備士管理辦法", "消防設備士管理", "消防設備師"], "設備人員管理辦法"),
+    (["消防安全設備檢修專業機構管理辦法", "檢修專業機構"], "檢修機構管理辦法"),
+    (["消防幫浦加壓送水裝置等及配管摩擦損失計算基準", "配管摩擦損失計算基準"], "幫浦計算基準"),
+    (["認可基準"], "認可基準"),
+    (["消防法"], "消防法"),
+]
+
+_CN = {"零": 0, "〇": 0, "一": 1, "二": 2, "兩": 2, "三": 3, "四": 4,
+       "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
+
+
+def _cn2int(s):
+    """中文或阿拉伯數字（0–999，含十、百）轉整數；無法解析回 None。"""
+    s = s.strip()
+    if s.isdigit():
+        return int(s)
+    if not s:
+        return None
+    section, num = 0, 0
+    for ch in s:
+        if ch in _CN:
+            num = _CN[ch]
+        elif ch == "十":
+            section += (num or 1) * 10; num = 0
+        elif ch == "百":
+            section += (num or 1) * 100; num = 0
+        else:
+            return None
+    val = section + num
+    return val or None
+
+
+ART_RE = re.compile(r"第\s*([〇零一二三四五六七八九十百\d]+)\s*條(?:之\s*([〇零一二三四五六七八九十百\d]+))?")
+
+
+def _law_short_before(text, pos):
+    """回傳 pos 之前文字中最近出現之法規短名；若該題完全未提及任何法規，回 None。"""
+    best, best_pos = None, -1
+    for kws, short in LAW_SHORT:
+        for k in kws:
+            p = text.rfind(k, 0, pos)
+            if p > best_pos:
+                best_pos, best = p, short
+    return best
+
+
+def extract_articles(text):
+    """擷取題幹明確引用之條號，附上最近法規短名作前綴；僅在可歸屬法源時納入。"""
+    arts = set()
+    for m in ART_RE.finditer(text):
+        n = _cn2int(m.group(1))
+        if not n:
+            continue
+        sub = ""
+        if m.group(2):
+            s2 = _cn2int(m.group(2))
+            if s2:
+                sub = f"之{s2}"
+        law = _law_short_before(text, m.start())
+        if not law:
+            continue  # 無法歸屬法源者不納入，避免雜訊
+        arts.add(f"{law}第{n}條{sub}")
+    return arts
+
+
 def classify(text, sci_paper):
     systems, equips, laws, topics, flags = set(), set(), set(), set(), set()
     for kws, name, sysname in EQUIP:
@@ -110,7 +185,8 @@ def classify(text, sci_paper):
     if re.search(r"計算|試求|試算|約為多少|每分鐘.*公升|kgf|kW|公斤.*多少|多少公尺|多少立方|放水量|出水量|揚程|換算|平方|×|公式", text) and re.search(r"\d", text):
         if any(w in text for w in ["計算", "試求", "試算", "約為", "估算", "求得", "試問", "幾倍", "幾分鐘", "多少"]):
             flags.add("計算題")
-    return systems, equips, laws, topics, flags
+    articles = extract_articles(text)
+    return systems, equips, laws, topics, flags, articles
 
 
 def process(md_path):
@@ -141,14 +217,14 @@ def process(md_path):
             while j < n and not lines[j].startswith("### ") and not lines[j].startswith("## "):
                 buf.append(lines[j]); j += 1
             block = "\n".join(buf)
-            syss, eqs, laws, tps, flags = classify(ln + "\n" + block, sci)
+            syss, eqs, laws, tps, flags, arts = classify(ln + "\n" + block, sci)
             flags.add("__type_測驗")
             if "圖形題" in block or "圖形）" in block or (figure_paper and "對照" in block):
                 flags.add("圖形題")
             if re.search(r"一律給分|均給分|更正答案", block):
                 flags.add("更正答案")
             ref = f"{paper_ref}#Q{qno}"
-            recs.append((ref, "測驗題", syss, eqs, laws, tps, flags))
+            recs.append((ref, "測驗題", syss, eqs, laws, tps, flags, arts))
             # build inline tag, insert right after the 標準答案 line
             seg = lines[i + 1 : j]
             new_seg = []
@@ -157,7 +233,7 @@ def process(md_path):
                 new_seg.append(s)
                 if (not inserted) and s.startswith("**標準答案"):
                     new_seg.append("")
-                    new_seg.append("> " + tagline("測驗題", syss, eqs, laws, tps, flags))
+                    new_seg.append("> " + tagline("測驗題", syss, eqs, laws, tps, flags, arts))
                     inserted = True
             out.extend(new_seg)
             i = j
@@ -169,12 +245,12 @@ def process(md_path):
             while j < n and not lines[j].startswith("### ") and not lines[j].startswith("## "):
                 buf.append(lines[j]); j += 1
             block = "\n".join(buf)
-            syss, eqs, laws, tps, flags = classify(ln + "\n" + block, sci)
+            syss, eqs, laws, tps, flags, arts = classify(ln + "\n" + block, sci)
             flags.add("__type_申論")
             ref = f"{paper_ref}#甲{essay_no(m_essay.group(1))}"
-            recs.append((ref, "申論題", syss, eqs, laws, tps, flags))
+            recs.append((ref, "申論題", syss, eqs, laws, tps, flags, arts))
             # insert tag after heading line
-            out.append("> " + tagline("申論題", syss, eqs, laws, tps, flags))
+            out.append("> " + tagline("申論題", syss, eqs, laws, tps, flags, arts))
             out.extend(lines[i + 1 : j])
             i = j
             continue
@@ -188,27 +264,36 @@ def essay_no(s):
     return cn.get(s, s)
 
 
-def tagline(typ, syss, eqs, laws, tps, flags):
+def tagline(typ, syss, eqs, laws, tps, flags, arts=None):
     parts = [typ]
     if syss: parts.append("、".join(sorted(syss)))
     if eqs: parts.append("、".join(sorted(eqs)))
     if laws: parts.append("、".join(sorted(laws)))
+    if arts: parts.append("、".join(sorted(arts, key=_art_sortkey)))
     if tps: parts.append("、".join(sorted(tps)))
     extra = [f for f in sorted(flags) if not f.startswith("__")]
     if extra: parts.append("、".join(extra))
     return f"{TAG} " + "｜".join(parts)
 
 
+def _art_sortkey(a):
+    """條號標籤排序：先依法規短名，再依條號數字。"""
+    m = re.search(r"第(\d+)", a)
+    return (a.split("第")[0], int(m.group(1)) if m else 0)
+
+
 def main():
-    idx = {"by_type": {}, "by_system": {}, "by_equipment": {}, "by_law": {}, "by_topic": {}, "by_flag": {}}
+    idx = {"by_type": {}, "by_system": {}, "by_equipment": {}, "by_law": {},
+           "by_article": {}, "by_topic": {}, "by_flag": {}}
     total = 0
     for md_path in sorted(MD_ROOT.rglob("*.md")):
-        for ref, typ, syss, eqs, laws, tps, flags in process(md_path):
+        for ref, typ, syss, eqs, laws, tps, flags, arts in process(md_path):
             total += 1
             idx["by_type"].setdefault(typ, []).append(ref)
             for s in syss: idx["by_system"].setdefault(s, []).append(ref)
             for e in eqs: idx["by_equipment"].setdefault(e, []).append(ref)
             for l in laws: idx["by_law"].setdefault(l, []).append(ref)
+            for a in arts: idx["by_article"].setdefault(a, []).append(ref)
             for t in tps: idx["by_topic"].setdefault(t, []).append(ref)
             for f in flags:
                 if not f.startswith("__"):
@@ -219,6 +304,7 @@ def main():
     print(f"processed {total} questions -> {INDEX.relative_to(ROOT)}")
     for k in ("by_type", "by_system", "by_equipment", "by_law", "by_topic", "by_flag"):
         print(f"  {k}: {[(t, len(v)) for t, v in sorted(idx[k].items(), key=lambda x:-len(x[1]))]}")
+    print(f"  by_article: {len(idx['by_article'])} 種條號；前20={[(t, len(v)) for t, v in sorted(idx['by_article'].items(), key=lambda x:-len(x[1]))][:20]}")
 
 
 if __name__ == "__main__":
