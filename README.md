@@ -44,7 +44,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ## 資料準備
 
 1. **考古題**：新增年度或士類試卷時，依 [`corpus/INGEST.md`](corpus/INGEST.md) 自考選部下載官方 PDF、轉成 md、更新 `corpus/index.json`。
-2. **法條**：依 [`statutes/index.md`](statutes/index.md) 的清單與格式規範，自全國法規資料庫／消防署整理現行全文 md 放入 `statutes/`（命題大綱所列法規已全數入庫；附表附圖待人工核對項見 `docs/待核對清單.md`）。
+2. **法條**：依 [`statutes/index.md`](statutes/index.md) 的清單與格式規範，自全國法規資料庫／消防署整理現行全文 md 放入 `statutes/`（命題大綱所列法規已全數入庫並完成人工核對；各檔檔首附「📌 免責聲明」，引用前請依官方公告核對）。
 
 skill 對 `corpus/` 與 `statutes/` 一律唯讀。學習進度紀錄存放於使用者自己的電腦（plugin 之外），位置與格式於執行時由使用者決定。
 
