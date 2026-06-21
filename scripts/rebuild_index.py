@@ -16,7 +16,7 @@ MD_ROOT = ROOT / "corpus" / "md"
 INDEX = ROOT / "corpus" / "tags_index.json"
 TAG = "🏷️"
 
-SYS_VOCAB = {"滅火設備", "警報設備", "避難逃生設備", "消防搶救上之必要設備", "綜合/通則"}
+SYS_VOCAB = {"水系統", "化學系統", "警報系統", "避難系統", "綜合/通則"}
 FLAG_VOCAB = {"找錯誤", "找正確", "計算題", "更正答案", "圖形題", "跨科"}
 TYPE_VOCAB = {"申論題", "測驗題"}
 ART_RE = re.compile(r"第\s*\d+\s*條")  # 條號標籤（法名＋第X條[之Y]）
