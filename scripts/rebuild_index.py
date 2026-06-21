@@ -87,12 +87,15 @@ def main():
         # 取得每個 🏷️ 行對應之題號：往上找最近的 ### 第N題 / 申論第N題
         qno = None
         for ln in lines:
-            mo = re.match(r"^### 第\s*(\d+)\s*題", ln)
-            me = re.match(r"^### 申論第([一二三四五六七八九十\d]+)題", ln)
+            mo = re.match(r"^### 第\s*(\d+)\s*題", ln)            # 測驗：阿拉伯數字
+            me = re.match(r"^### 申論第([一二三四五六七八九十\d]+)題", ln)  # 申論（有前綴）
+            mc = re.match(r"^### 第([一二三四五六七八九十]+)題", ln)  # 申論：中文數字第X題（師設備全申論卷）
+            cn = {"一":1,"二":2,"三":3,"四":4,"五":5,"六":6,"七":7,"八":8,"九":9,"十":10}
             if mo: qno = f"#Q{mo.group(1)}"
             elif me:
-                cn = {"一":1,"二":2,"三":3,"四":4,"五":5}
                 qno = f"#甲{cn.get(me.group(1), me.group(1))}"
+            elif mc:
+                qno = f"#甲{cn.get(mc.group(1), mc.group(1))}"
             s = ln.lstrip()
             if s.startswith(f"> {TAG}") or s.startswith(TAG):
                 if qno is None: continue
