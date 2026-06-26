@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-build_tags.py — 解析 corpus/md 內所有考古題 md，為每題自動標籤，
-並（1）將內嵌標籤寫回各 md（2）產生中央索引 corpus/tags_index.json。
+build_tags.py — ⚠️ **已停用（DEPRECATED，2026-06）**
 
-標籤維度見 docs/設計_題目標籤系統.md。可機判維度（題型、找錯誤/找正確、
-計算題、圖形題、更正答案）由規則判定；系統／設備／法規／知識領域以關鍵詞
-字典初判（auto），仍建議人工校正。重複執行為冪等（先移除舊內嵌標籤再寫入）。
+本腳本以關鍵字字典自動判讀題目產生標籤，**準確度不足**；現行**分類準確度一律以
+語意判斷為準**：系統／設備／法規／知識領域之最終分類，以各題 inline `🏷️` 標籤
+為唯一真相來源（由人工／語意校正），不再以本腳本之關鍵字結果為準。
 
-用法：python3 scripts/build_tags.py
+- 重建中央索引請改用 `scripts/rebuild_index.py`（解析 inline 標籤反建，不重判題目）。
+- 頻率統計／精簡索引請用 `scripts/analyze_corpus.py`。
+- 本檔僅保留作為歷史參考與「題型／旗標／條號」等客觀規則之來源；**請勿再執行**
+  （會以關鍵字覆蓋既有之語意標籤）。詳見 docs/設計_題目標籤系統.md。
+
+（原說明）解析 corpus/md 為每題自動標籤，並產生 corpus/tags_index.json。
+（註：本模組之 EQUIP／LAWS／TOPICS 詞彙仍被 rebuild_index.py 匯入使用，故保留可匯入；
+僅禁止「執行」本腳本。）
 """
 import json, re, pathlib
 
@@ -308,4 +314,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(
+        "⚠️ build_tags.py 已停用（DEPRECATED）：分類準確度以語意判斷為準，"
+        "本腳本之關鍵字結果會覆蓋既有語意標籤。\n"
+        "  • 重建索引 → python3 scripts/rebuild_index.py\n"
+        "  • 頻率統計 → python3 scripts/analyze_corpus.py"
+    )
