@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""擷取原卷 PDF 中的圖形題圖片，輸出至 corpus/images/。
+"""擷取原卷 PDF 中的圖形題圖片，輸出至引用之 md 檔同資料夾（corpus/md/<類>/<年>/）。
 
 用途：issue #3「① 圖形題」——將題幹／選項圖形自原卷 PDF 裁切為 PNG，
 供 corpus/md/ 內嵌顯示（取代「請對照原 PDF 作答」占位文字）。
@@ -20,7 +20,7 @@ import sys
 import fitz
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT_ROOT = os.path.join(ROOT, "corpus", "images")
+OUT_ROOT = os.path.join(ROOT, "corpus", "md")  # 圖片與引用之 md 同資料夾
 
 # dpi：選項小圖原生解析度低（46~107px），300dpi 渲染已足；大型向量圖 220dpi。
 MANIFEST = [
