@@ -17,7 +17,7 @@
 ├── progress.json               ← 作答與弱點紀錄（weakness_tracking = "auto" 才建立）
 ├── notes/                      ← 複習筆記庫（記憶重點、對照表、弱點筆記等，使用者選擇存檔時）
 ├── plans/                      ← 讀書計畫（study-planner）
-└── forecasts/                  ← 猜題產物（趨勢報告、猜題清單、懶人包、申論擬答）
+└── forecasts/                  ← 猜題產物（趨勢報告、懶人包、申論擬答）
 ```
 
 ## config.json
@@ -75,7 +75,6 @@
 | 產物 | 路徑 | 命名 |
 |------|------|------|
 | 趨勢報告（猜題範圍） | `forecasts/` | `趨勢報告_<等別><民國年>_<YYYY-MM-DD>.md`（exam-trend-forecast） |
-| 猜題清單 | `forecasts/` | `猜題清單_<等別><民國年>.md`（study-planner；同年同等別續用同一檔，支援勾銷接續） |
 | 考前必背懶人包 | `forecasts/` | `考前必背懶人包_<等別><民國年>.md`（statute-memorizer） |
 | 申論猜題擬答 | `forecasts/` | `申論猜題擬答_<等別><民國年>_<科目>.md`（exam-tutor） |
 | 複習／弱點筆記 | `notes/` | `<YYYY-MM-DD>_<主題>.md`（如 `2026-07-06_水系統弱點筆記.md`） |

@@ -1,7 +1,7 @@
 {
   "name": "fire-safety-personnel-tutor",
   "description": "消防設備師／士國家考試備考工具：考情趨勢預測與猜題（exam-trend-forecast）、家教式出題批改（exam-tutor）、法規記憶對照（statute-memorizer）、讀書計畫（study-planner）、題庫查詢（exam-archive），並提供 /抽考、/猜題、/讀書計畫 等 slash commands。內含歷年考古題題庫、命題大綱法條全文與高頻考點對照表。",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "author": {
     "name": "yyc1217",
     "email": "yyc1217@gmail.com"
