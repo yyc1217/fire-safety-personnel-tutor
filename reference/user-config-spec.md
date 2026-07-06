@@ -16,6 +16,7 @@
 ├── config.json                 ← 使用者設定
 ├── progress.json               ← 作答與弱點紀錄（weakness_tracking = "auto" 才建立）
 ├── notes/                      ← 複習筆記庫（記憶重點、對照表、弱點筆記等，使用者選擇存檔時）
+├── plans/                      ← 讀書計畫（study-planner）
 └── forecasts/                  ← 猜題產物（趨勢報告、猜題清單、懶人包、申論擬答）
 ```
 
@@ -36,6 +37,8 @@
 | `level` | `"師"`／`"士"` | 師：六科全申論（火災學、消防法規、警報、避難、水、化學系統）。士：四科申論＋測驗混合（火災學概要、法規概要、警報與避難概要、水與化學概要）。影響 exam-tutor 出題科目與題型比重、exam-trend-forecast 猜題科目範圍與申論/測驗考點配比。 |
 | `weakness_tracking` | `"auto"`／`"notes"`／`"none"` | `auto`：作答後自動寫入 `progress.json`，弱點複習時自動讀取。`notes`：不寫 progress.json，每次練習結束產出一份錯題與弱點筆記，問使用者「存入 `notes/` 或看完即可」（記住偏好）。`none`：完全不記錄、不寫檔、不再詢問。 |
 | `data_dir` | 路徑 | 所有使用者資料的根目錄；`~` 展開為使用者家目錄。 |
+| `exam_date` | 選填，`YYYY-MM-DD` 或民國格式 | 目標考試日期；study-planner 有此值＋`weekly_hours` 時改產逐週排程並於考前預留總複習。 |
+| `weekly_hours` | 選填，數字 | 每週可用讀書時數（供 study-planner 分配單元）。 |
 
 ## progress.json（weakness_tracking = "auto"）
 
@@ -76,5 +79,6 @@
 | 考前必背懶人包 | `forecasts/` | `考前必背懶人包_<等別><民國年>.md` |
 | 申論猜題擬答 | `forecasts/` | `申論猜題擬答_<等別><民國年>_<科目>.md` |
 | 複習／弱點筆記 | `notes/` | `<YYYY-MM-DD>_<主題>.md`（如 `2026-07-06_水系統弱點筆記.md`） |
+| 讀書計畫 | `plans/` | `讀書計畫_<等別><民國年>.md`（同年同等別續用同一檔，支援勾銷與重排） |
 
 原則：**等別＋民國年**入檔名者為同年續用之工作檔（可勾銷、可增補）；**日期**入檔名者為快照型產物。
