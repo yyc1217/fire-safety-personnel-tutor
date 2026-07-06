@@ -2,9 +2,23 @@
 
 消防設備師／士國家考試備考 Claude Code plugin：
 
-- **`/fire-safety-personnel-tutor:exam-tutor`** — 家教模式：依考古題風格出題（頻率排序、單一設備連續提問、先問後等再解）、收作答、0–100 分批改，講解時引用法條全文（條／項／款／目階層）。
-- **`/fire-safety-personnel-tutor:exam-trend-forecast`** — 考情分析：結合歷年考點分布與近 12–24 個月的法規修正、行政函令、重大時事，產出「法規脈動／技術實務／時事預測」三類趨勢報告（附依據與信心程度）。
-- **`/fire-safety-personnel-tutor:exam-archive`** — 檔案庫查詢：列出題庫清單、提供指定年度科目的原卷 PDF、標準答案卷或單題原文。
+- **exam-tutor** — 家教模式：以消防安全設備為主體、依 `reference/設備條文索引.md` 課綱地圖連續出題（先問後等再解）、收作答、0–100 分批改，講解時引用法條全文（條／項／款／目階層）；含快速抽考（3~5 題）與弱點複習模式。
+- **exam-trend-forecast** — 考情分析與猜題：結合近 10 年加權考點分布與近 12–24 個月的法規修正、行政函令、重大時事，產出「法規脈動／技術實務／時事預測」趨勢報告（附依據與信心程度），並可延伸四種產出：直接練（交棒 exam-tutor）、可勾銷猜題清單、申論猜題＋擬答、考前必背懶人包。
+- **statute-memorizer** — 法規記憶助手：整理易混淆數字／時限／罰則成記憶卡與口訣、產生跨法規對照表（內建 8 張高頻對照表＋即時生成）。
+- **exam-archive** — 檔案庫查詢：列出題庫清單、提供指定年度科目的原卷 PDF、標準答案卷或單題原文。
+
+### Slash commands
+
+| 指令 | 功能 |
+|------|------|
+| `/抽考 [範圍]` | 快速抽考一輪 3~5 題（零碎時間用） |
+| `/弱點複習 [範圍]` | 依作答紀錄優先重考常錯考點 |
+| `/記憶重點 <主題>` | 整理記憶卡／口訣／易混淆組 |
+| `/對照表 [主題]` | 跨法規對照表（留空列出內建清單） |
+| `/猜題 [範圍]` | 完整猜題流程＋四種後續產出 |
+| `/懶人包 [範圍]` | 考前必背懶人包 |
+| `/申論猜題 [科目]` | 申論題猜題＋答題架構＋擬答 |
+| `/設定` | 設定應考等別（師/士）、弱點記錄模式 |
 
 所有內容與產出均為繁體中文。
 
@@ -29,9 +43,16 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 │   └── pdf/                 # 原始 PDF：原卷＋答案卷（師/<年>/、士/<年>/）
 ├── statutes/                # 命題大綱法規現行全文 md（使用者手動整理）
 │   └── index.md             # 法規清單、檔名對照與整理格式規範
+├── reference/               # 內建整理資產（唯讀）
+│   ├── index.md             # 資產索引與「內建優先、即時補充」原則
+│   ├── user-config-spec.md  # 使用者設定/進度檔共用規格（各 skill 引用）
+│   ├── 設備條文索引.md       # 設備×條文課綱地圖（exam-tutor 連續出題依據）
+│   └── 對照表/              # 8 張高頻考點對照表（檢修申報、水系統數值…）
+├── commands/                # slash commands（/抽考、/猜題、/設定 等 8 個）
 └── skills/
     ├── exam-tutor/SKILL.md
     ├── exam-trend-forecast/SKILL.md
+    ├── statute-memorizer/SKILL.md
     └── exam-archive/SKILL.md
 ```
 
@@ -46,7 +67,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 1. **考古題**：新增年度或士類試卷時，依 [`corpus/INGEST.md`](corpus/INGEST.md) 自考選部下載官方 PDF、轉成 md、更新 `corpus/index.json`。
 2. **法條**：依 [`statutes/index.md`](statutes/index.md) 的清單與格式規範，自全國法規資料庫／消防署整理現行全文 md 放入 `statutes/`（命題大綱所列法規已全數入庫並完成人工核對；各檔檔首附「📌 免責聲明」，引用前請依官方公告核對）。
 
-skill 對 `corpus/` 與 `statutes/` 一律唯讀。學習進度紀錄存放於使用者自己的電腦（plugin 之外），位置與格式於執行時由使用者決定。
+skill 對 `corpus/`、`statutes/` 與 `reference/` 一律唯讀。使用者設定（應考等別、弱點記錄模式）與學習進度存放於使用者自己的電腦（預設 `~/.fire-safety-tutor/`，plugin 之外），初次使用時詢問一次並記住；規格見 [`reference/user-config-spec.md`](reference/user-config-spec.md)。
 
 ## 設計原則
 
