@@ -119,8 +119,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
 ├── statutes/                # 命題大綱法規現行全文 md
 ├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格
-├── commands/                # slash commands
-├── skills/                  # 五個 skill 之 SKILL.md
+├── skills/                  # 五個功能 skill＋八個 slash command skill（各為 <名稱>/SKILL.md）
 ├── scripts/                 # 維護者工具（見 scripts/README.md）
 └── docs/                    # 設計筆記、資料維護說明、待辦與里程碑
 ```
