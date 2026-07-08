@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+analyze_cycles.py — 命題「週期型態」統計：由 corpus/tags_index.json 之題目參照
+（<等別>/<年>/<科目>#題號）計算每個考點（by_article／by_equipment／by_topic）
+在各等別的逐年出題序列，分類其出題型態，產出：
+
+1. corpus/tags_cycles.json — 精簡週期索引（skill 可整檔載入）：
+   {等別: {維度: {tag: {years, n, first, last, gap_now, mean_gap, rate, pattern, subjects}}}}
+2. corpus/命題週期分析.md — 人可讀報告：各等別之常年型／週期到期（回鍋候選）／
+   冷卻中／一次性久未考清單，以及「未考缺口」（設備條文索引有列、但題庫查無之設置標準條號）。
+
+型態分類規則（NEXT＝下一次考試年＝題庫最新年＋1；rate＝出現年數/該等別開辦年數）：
+- 常年型   ：rate ≥ 0.5 —— 幾乎每屆都考，題目換方向重出，屬必練基本盤。
+- 新興熱點 ：mean_gap ≤ 1.5 且 gap_now ≤ 2 —— 近年開始後連續出題（常見於新修法考點）。
+- 週期到期 ：n ≥ 2 且 gap_now ≥ max(mean_gap, 2) —— 已達/超過平均再現間隔（含曾密集
+             出題但久未回鍋者），回鍋機率升高。
+- 冷卻中   ：n ≥ 2 且 gap_now < mean_gap —— 剛考過不久，依歷史間隔短期內再考機率較低。
+- 一次性   ：n == 1 且 gap_now ≥ 5 —— 僅考過一次且久未再現，低優先（除非修法/時事觸及）。
+- 偶發     ：其餘（樣本太少，不下結論）。
+
+注意：型態為統計啟發式，僅供猜題排序參考，不是保證；與修法/函令/時事三維度合成使用。
+
+用法：python3 scripts/analyze_cycles.py
+"""
+import json, re, pathlib, collections, statistics
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+IDX = ROOT / "corpus" / "tags_index.json"
+CYCLES = ROOT / "corpus" / "tags_cycles.json"
+REPORT = ROOT / "corpus" / "命題週期分析.md"
+DEVICE_INDEX = ROOT / "reference" / "設備條文索引.md"
+
+DIMS = ["by_article", "by_equipment", "by_topic"]
+REF = re.compile(r"^(師|士)/(\d+)/(\d+)#")
+
+def classify(years, exam_years, next_year):
+    n = len(years)
+    first, last = years[0], years[-1]
+    gap_now = next_year - last
+    rate = n / len(exam_years)
+    if n >= 2:
+        gaps = [b - a for a, b in zip(years, years[1:])]
+        mean_gap = round(statistics.mean(gaps), 2)
+    else:
+        mean_gap = None
+    if rate >= 0.5:
+        pattern = "常年型"
+    elif n >= 2 and mean_gap is not None and mean_gap <= 1.5 and gap_now <= 2:
+        pattern = "新興熱點"      # 近年開始後連續出題（如新修法考點），視同高機率
+    elif n >= 2 and mean_gap is not None and gap_now >= max(mean_gap, 2):
+        pattern = "週期到期"      # 已達/超過平均再現間隔（含曾密集出題但久未回鍋者）
+    elif n >= 2 and mean_gap is not None and gap_now < mean_gap:
+        pattern = "冷卻中"
+    elif n == 1 and gap_now >= 5:
+        pattern = "一次性"
+    else:
+        pattern = "偶發"
+    return {"years": years, "n": n, "first": first, "last": last,
+            "gap_now": gap_now, "mean_gap": mean_gap,
+            "rate": round(rate, 2), "pattern": pattern}
+
+def main():
+    idx = json.loads(IDX.read_text(encoding="utf-8"))
+    # 各等別開辦年（由全部參照回推）
+    level_years = collections.defaultdict(set)
+    for dim in DIMS:
+        for refs in idx.get(dim, {}).values():
+            for r in refs:
+                m = REF.match(r)
+                if m:
+                    level_years[m.group(1)].add(int(m.group(2)))
+    out = {"_meta": {"rules": "常年型 rate>=0.5；新興熱點 mean_gap<=1.5,gap_now<=2；週期到期 n>=2,gap_now>=max(mean_gap,2)；"
+                              "冷卻中 n>=2,gap_now<mean_gap；一次性 n==1,gap_now>=5；其餘 偶發。"
+                              "gap_now 以題庫最新年+1（下一次考試）計。"}}
+    for level, ys in sorted(level_years.items()):
+        exam_years = sorted(ys)
+        next_year = exam_years[-1] + 1
+        out["_meta"][level] = {"exam_years": exam_years, "next_year": next_year}
+        out[level] = {}
+        for dim in DIMS:
+            out[level][dim] = {}
+            for tag, refs in idx.get(dim, {}).items():
+                years = sorted({int(m.group(2)) for r in refs
+                                if (m := REF.match(r)) and m.group(1) == level})
+                if not years:
+                    continue
+                subjects = collections.Counter(m.group(3) for r in refs
+                                               if (m := REF.match(r)) and m.group(1) == level)
+                rec = classify(years, exam_years, next_year)
+                rec["subjects"] = dict(subjects.most_common())
+                out[level][dim][tag] = rec
+    CYCLES.write_text(json.dumps(out, ensure_ascii=False, separators=(",", ":")),
+                      encoding="utf-8")
+
+    # 缺口：設備條文索引之設置標準條號，題庫（師＋士合併）查無 by_article 者
+    gaps = []
+    if DEVICE_INDEX.exists():
+        listed = set()
+        for line in DEVICE_INDEX.read_text(encoding="utf-8").splitlines():
+            m = re.match(r"^\|\s*設置標準\s*\|\s*([0-9\-]+)\s*\|", line)
+            if m:
+                listed.add(m.group(1))
+        asked = set()
+        for tag in idx.get("by_article", {}):
+            m = re.match(r"^設置標準第([0-9\-]+)條$", tag)
+            if m:
+                asked.add(m.group(1))
+        gaps = sorted(listed - asked, key=lambda x: [int(p) for p in x.split("-")])
+
+    # 報告
+    lines = ["# 命題週期分析", "",
+             f"> 由 `scripts/analyze_cycles.py` 自 `corpus/tags_index.json` 產生；"
+             f"型態分類規則見腳本檔首。供 exam-trend-forecast 猜題參考，統計啟發式非保證。", ""]
+    for level in sorted(k for k in out if not k.startswith("_")):
+        meta = out["_meta"][level]
+        lines += [f"## {level}（開辦年 {meta['exam_years'][0]}–{meta['exam_years'][-1]}，"
+                  f"下一次考試以 {meta['next_year']} 年計）", ""]
+        arts = out[level]["by_article"]
+        buckets = collections.defaultdict(list)
+        for tag, rec in arts.items():
+            buckets[rec["pattern"]].append((tag, rec))
+        for pat, title, sort_key, topn in [
+            ("常年型", "常年型（幾乎每屆都考，換方向重出——必練基本盤）",
+             lambda t: -t[1]["rate"], 20),
+            ("新興熱點", "新興熱點（近年開始後連續出題，常見於新修法考點）",
+             lambda t: -t[1]["n"], 15),
+            ("週期到期", "週期到期（已達/超過平均再現間隔——回鍋候選）",
+             lambda t: -(t[1]["gap_now"] - (t[1]["mean_gap"] or 0)), 25),
+            ("冷卻中", "冷卻中（剛考過，依歷史間隔短期再考機率較低）",
+             lambda t: t[1]["gap_now"], 15),
+            ("一次性", "一次性久未考（低優先，除非修法/時事觸及）",
+             lambda t: -t[1]["gap_now"], 15),
+        ]:
+            items = sorted(buckets.get(pat, []), key=sort_key)[:topn]
+            if not items:
+                continue
+            lines += [f"### {title}", "",
+                      "| 考點 | 出題年 | 次數 | 平均間隔 | 距今 | 主要考科 |",
+                      "| --- | --- | :---: | :---: | :---: | --- |"]
+            for tag, rec in items:
+                ys = "、".join(map(str, rec["years"]))
+                subj = "、".join(list(rec["subjects"])[:2])
+                lines.append(f"| {tag} | {ys} | {rec['n']} | {rec['mean_gap'] or '—'} "
+                             f"| {rec['gap_now']} | {subj} |")
+            lines.append("")
+    if gaps:
+        lines += ["## 未考缺口（設備條文索引有列，題庫全庫查無之設置標準條號）", "",
+                  "> 從未出題之條文：搭配修法／函令／時事評估「首考」可能性；"
+                  "多數屬細節條文，僅在動態維度觸及時上調。"
+                  "**注意**：條號標籤僅在題目可明確對應條號時才標（申論題常僅標法規），"
+                  "本清單為「查無條號標籤」而非嚴格「從未考過」，判讀時應以 by_law／"
+                  "by_equipment 維度交叉確認。", "",
+                  "設置標準：" + "、".join(f"§{g}" for g in gaps), ""]
+    REPORT.write_text("\n".join(lines), encoding="utf-8")
+    print(f"OK: {CYCLES.name} ({CYCLES.stat().st_size//1024} KB), {REPORT.name}; "
+          f"levels={[k for k in out if not k.startswith('_')]}, 缺口={len(gaps)}")
+
+if __name__ == "__main__":
+    main()

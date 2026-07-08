@@ -47,7 +47,7 @@
 {
   "attempts": [
     {"date": "2026-07-06", "level": "師", "subject": "化學系統", "q_id": "師/113/0806#3",
-     "score": 60, "max": 100, "weak_topics": ["by_equipment:滅火器", "by_article:設置標準第31條"], "note": ""}
+     "score": 15, "max": 25, "weak_topics": ["by_equipment:滅火器", "by_article:設置標準第31條"], "note": ""}
   ],
   "asked_ids": ["師/113/0806#3"],
   "weak_tally": {"by_equipment:滅火器": 2, "by_article:設置標準第31條": 1},

@@ -8,9 +8,10 @@
 |------|------|
 | `rebuild_index.py` | 從各題 inline `🏷️` 標籤**反向建立** `corpus/tags_index.json`。不重新判讀題目——inline 標籤（人工／語意校正結果）為唯一真相來源；校正分類請直接編輯 md 的 `🏷️` 行後執行本腳本。 |
 | `analyze_corpus.py` | 由 `tags_index.json` 計算命題頻率與趨勢，產出 `corpus/tags_summary.json`（精簡計數索引，skill 直接載入）與 `corpus/命題頻率分析.md`（人可讀報告）。 |
+| `analyze_cycles.py` | 由 `tags_index.json` 計算各考點**出題週期型態**（常年型／新興熱點／週期到期／冷卻中／一次性／偶發＋未考缺口），依等別分拆，產出 `corpus/tags_cycles.json` 與 `corpus/命題週期分析.md`，供 exam-trend-forecast 猜題使用。 |
 | `build_tags.py` | ⚠️ **已停用（DEPRECATED，2026-06）**：關鍵字自動判讀準確度不足，其結果會覆蓋語意標籤。**保留原因**：其 EQUIP／LAWS／TOPICS 詞彙表仍供 `rebuild_index.py` 匯入；執行時直接報錯擋下。 |
 
-標準流程：編輯題目 `🏷️` 行 → `python3 scripts/rebuild_index.py` → `python3 scripts/analyze_corpus.py`。
+標準流程：編輯題目 `🏷️` 行 → `python3 scripts/rebuild_index.py` → `python3 scripts/analyze_corpus.py` → `python3 scripts/analyze_cycles.py`。
 
 ## 題庫品質校核（issue #3）
 
