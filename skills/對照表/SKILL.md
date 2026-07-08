@@ -1,5 +1,6 @@
 ---
 description: 產生跨法規對照表：把不同法規中相似的規定（期限/面積/距離/罰則）並列比較
 argument-hint: [主題，如：檢修申報、各設備緊急電源；留空列出內建對照表清單]
+disable-model-invocation: true
 ---
 使用 statute-memorizer skill：依 `${CLAUDE_PLUGIN_ROOT}/reference/index.md` 之「內建優先、即時補充」原則產生跨法規對照表。未指定主題時，先列出內建對照表清單供選擇。主題：$ARGUMENTS

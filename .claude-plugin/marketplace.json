@@ -1,8 +1,8 @@
 {
   "name": "fire-safety-personnel-tutor-marketplace",
+  "description": "消防設備師／士國家考試備考 plugin marketplace：家教式出題批改、考情猜題、法規記憶、讀書計畫與題庫查詢。",
   "owner": {
-    "name": "yyc1217",
-    "email": "yyc1217@users.noreply.github.com"
+    "name": "yyc1217"
   },
   "plugins": [
     {
