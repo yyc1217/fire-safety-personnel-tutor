@@ -17,6 +17,7 @@
 | 指令 | 功能 | 範例 |
 |------|------|------|
 | `/抽考 [範圍?]` | 快速抽考一輪 3~5 題 | `/抽考 警報系統` |
+| `/出考卷 [科目?]` | 套用最新年度原卷版面（首尾標註【模擬考】）產出整卷仿真模擬試卷＋標準答案 | `/出考卷 消防法規` |
 | `/弱點複習 [範圍?]` | 依作答紀錄優先重考常錯考點 | `/弱點複習` |
 | `/對照表 [主題?]` | 跨法規對照表；留空列出內建清單 | `/對照表 各設備緊急電源` |
 | `/猜題 [範圍?]` | 產出猜題範圍（考點＋依據＋週期型態＋信心） | `/猜題` |
@@ -110,7 +111,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
 ├── statutes/                # 命題大綱法規現行全文 md
 ├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格
-├── skills/                  # 五個功能 skill＋八個 slash command skill（各為 <名稱>/SKILL.md）
+├── skills/                  # 五個功能 skill＋九個 slash command skill（各為 <名稱>/SKILL.md）
 ├── scripts/                 # 維護者工具（見 scripts/README.md）
 └── docs/                    # 設計筆記、資料維護說明、待辦與里程碑
 ```
