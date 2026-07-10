@@ -112,10 +112,10 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格
 ├── skills/                  # 五個功能 skill＋八個 slash command skill（各為 <名稱>/SKILL.md）
 ├── scripts/                 # 維護者工具（見 scripts/README.md）
-└── docs/                    # 設計筆記、資料維護說明、待辦與里程碑
+└── docs/                    # 設計筆記、資料維護說明、待辦與變更紀錄（入口：docs/index.md）
 ```
 
-題庫與法規之維護細節（標籤索引流程、新年度試卷納入、法規整理規範）見 [`docs/資料維護.md`](docs/資料維護.md)。
+題庫與法規之維護細節（標籤索引流程、新年度試卷納入、法規整理規範）見 [`docs/資料維護.md`](docs/資料維護.md)；設計筆記、待辦與變更紀錄之總覽見 [`docs/index.md`](docs/index.md)。
 
 ## 設計原則
 
