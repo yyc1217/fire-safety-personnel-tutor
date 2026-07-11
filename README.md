@@ -1,5 +1,10 @@
 # fire-safety-personnel-tutor
 
+![License](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Version](https://img.shields.io/badge/version-0.6.0-blue.svg)
+![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
+![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
+
 消防設備師／士國家考試備考 Claude Code plugin。內含民國 100–115 年考古題題庫（160 卷、3680 題，逐題標籤）、命題大綱法規現行全文與高頻考點對照表；所有互動與產出均為繁體中文。
 
 ## 功能
