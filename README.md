@@ -29,7 +29,7 @@
 | `/申論猜題 [科目?]` | 申論猜題＋答題架構＋擬答（每一論點附法源） | `/申論猜題 消防法規` |
 | `/懶人包 [範圍?]` | 猜題範圍＋平時弱點濃縮成必背文件 | `/懶人包` |
 | `/讀書計畫 [考試日期?]` | 初次使用先確認考試日期（預設每年六月第一個週末），討論後排研讀順序或週排程 | `/讀書計畫` |
-| `/設定` | 應考等別（師／士）、弱點記錄模式、資料目錄 | `/設定` |
+| `/備考設定` | 應考等別（師／士）、弱點記錄模式、資料目錄 | `/備考設定` |
 
 ## 使用範例
 
@@ -107,7 +107,7 @@ claude plugin marketplace add https://github.com/yyc1217/fire-safety-personnel-t
 claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace
 ```
 
-初次使用任一功能時會詢問應考等別與弱點記錄模式（一次記住，`/設定` 可改）；學習進度存於使用者本機 `~/.fire-safety-tutor/`，plugin 目錄唯讀。
+初次使用任一功能時會詢問應考等別與弱點記錄模式（一次記住，`/備考設定` 可改）；學習進度存於使用者本機 `~/.fire-safety-tutor/`，plugin 目錄唯讀。
 
 ## 目錄結構
 
