@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-0.6.2-blue.svg)
+![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -53,7 +53,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ├── .claude-plugin/          # plugin 與 marketplace 定義
 ├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
 ├── statutes/                # 命題大綱法規現行全文 md
-├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格
+├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格、輸出格式範本
 ├── skills/                  # 五個功能 skill＋九個 slash command skill（各為 <名稱>/SKILL.md）
 ├── scripts/                 # 維護者工具（見 scripts/README.md）
 └── docs/                    # 設計筆記、資料維護說明、待辦與變更紀錄（入口：docs/index.md）
