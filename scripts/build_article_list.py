@@ -65,6 +65,11 @@ def main():
            "（該條要點總數，語意切分）由 exam-tutor 批改時存入 `progress.json` 之 `coverage`"
            "（見 `reference/user-config-spec.md`），本索引不含要點數。",
            ">",
+           "> **條號 key 對應**：條號 `N-M` 即「第 N 條之 M」，coverage key 用"
+           "`by_article:<法規短名>第N條之M`（對齊 `corpus/tags_index.json` 維度，如"
+           "`設置標準第111條之1`，不用 `111-1`）；檢修基準以章為單位，key＝"
+           "`by_article:檢修基準第X章`（中文數字）。見 `reference/user-config-spec.md`。",
+           ">",
            "> ⚠️ 條號隨修法可能變動，修法後請重跑腳本更新。",
            ""]
     for name, fn in TOP5:
