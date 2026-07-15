@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-0.6.2-blue.svg)
+![Version](https://img.shields.io/badge/version-0.7.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -33,8 +33,11 @@
 
 ## 使用範例
 
-- **出題練習範例**（六科出題範例）：見 [`docs/範例_出題練習.md`](docs/範例_出題練習.md)。以消防安全設備為主體、依設備條文索引連續出題，出題後停下等作答；批改時才給分數、條文全文與法源出處。
-- **猜題報告範例**（`/猜題` 六科範例）：見 [`docs/範例_猜題報告.md`](docs/範例_猜題報告.md)。依科目分層，先給統計結果與一問一答考點，再詢問是否上網補近期修法／時事。
+輸出格式範本集中於 [`reference/輸出格式/`](reference/輸出格式/)，**每檔＝格式定義＋文末範例**：
+
+- **出題練習範例**（六科出題範例）：見 [`reference/輸出格式/出題呈現格式.md`](reference/輸出格式/出題呈現格式.md)。以消防安全設備為主體、依設備條文索引連續出題，出題後停下等作答；批改時才給分數、條文全文與法源出處。
+- **猜題報告範例**（`/猜題` 六科範例）：見 [`reference/輸出格式/猜題報告格式.md`](reference/輸出格式/猜題報告格式.md)。依科目分層，先給統計結果與一問一答考點，再詢問是否上網補近期修法／時事。
+- **其餘輸出**（批改、試卷、弱點筆記、懶人包、擬答、讀書計畫、記憶整理、題庫查詢與複習）：同資料夾各檔，清單見 [`reference/index.md`](reference/index.md)。
 
 ## 安裝
 
@@ -53,7 +56,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ├── .claude-plugin/          # plugin 與 marketplace 定義
 ├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
 ├── statutes/                # 命題大綱法規現行全文 md
-├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格
+├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格、輸出格式範本
 ├── skills/                  # 五個功能 skill＋九個 slash command skill（各為 <名稱>/SKILL.md）
 ├── scripts/                 # 維護者工具（見 scripts/README.md）
 └── docs/                    # 設計筆記、資料維護說明、待辦與變更紀錄（入口：docs/index.md）
