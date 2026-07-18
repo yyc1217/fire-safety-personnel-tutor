@@ -3,7 +3,8 @@
 """
 analyze_corpus.py — 由 corpus/tags_index.json 計算命題頻率與難易度趨勢，產出：
 
-1. corpus/tags_summary.json — **精簡計數索引**（各維度 tag→總數、逐年數、師/士數），
+1. corpus/tags_summary.json — **精簡計數索引**（各維度 tag→總數、逐年數、師/士數，
+   及師/士分層逐年數 by_year_師／by_year_士，供「該等別 × 近五年」交叉統計），
    不含題目參照陣列，檔案小，供 skill（尤其 exam-trend-forecast）直接載入做統計，
    毋需載入完整 tags_index.json（見「載入策略」）。
 2. corpus/命題頻率分析.md — 人可讀之頻率/趨勢報告。
@@ -52,13 +53,17 @@ def main():
         for tag, refs in idx.get(dim, {}).items():
             by_year = collections.Counter()
             by_level = collections.Counter()
+            by_year_level = {"師": collections.Counter(), "士": collections.Counter()}
             for r in refs:
                 lv, yr = parse(r)
                 if yr: by_year[yr] += 1
                 if lv: by_level[lv] += 1
+                if lv and yr: by_year_level[lv][yr] += 1
             summary[dim][tag] = {"total": len(refs),
                                  "師": by_level.get("師", 0), "士": by_level.get("士", 0),
-                                 "by_year": dict(sorted(by_year.items(), key=lambda x: int(x[0])))}
+                                 "by_year": dict(sorted(by_year.items(), key=lambda x: int(x[0]))),
+                                 "by_year_師": dict(sorted(by_year_level["師"].items(), key=lambda x: int(x[0]))),
+                                 "by_year_士": dict(sorted(by_year_level["士"].items(), key=lambda x: int(x[0])))}
     SUMMARY.write_text(json.dumps(summary, ensure_ascii=False, indent=1), encoding="utf-8")
 
     # ---- 人可讀報告 ----
