@@ -28,6 +28,7 @@
 | `rtf2md_statute.py` | 全國法規資料庫匯出之 RTF（Big5）→ 章條分明的 Markdown。 |
 | `html2md_statute.py` | 消防署「消防法令查詢系統」HTML（基準／要點類，`<pre>` 區塊）→ Markdown。 |
 | `pdf2md_statute.py` | 政府公報型 PDF（檢修基準／認可基準，`pdftotext -layout`）→ Markdown。 |
+| `check_statute_versions.py` | 比對 `statutes/` 各檔檔首版本日期與 `docs/法規版本追蹤.md` 核對紀錄表，列出 🔴 過期／⚪ 未核對／✅ 現行；有過期時以非零值結束（`--stale-only` 只列問題檔）。 |
 
 轉檔後均需人工核對（CLAUDE.md：OCR 免責與查證、公式一律 LaTeX、附表處理原則）。
 
