@@ -153,6 +153,48 @@ def run_level(title, counts, keys, years):
     return results
 
 
+def show_examples(r=0.8, window=10, topn=5):
+    """列出「校準 vs 純總次數」名次差最大之法規，供設計文件第五節實例對比。
+
+    用截至最新年（Y_now）之資料預測次年，比較兩種排序：
+      - 校準：S(g)=Σ n(g,y)·r^(Y_now−y)，限窗 [Y_now−window+1, Y_now]
+      - 純總次數：Σ n(g,y)（全窗）
+    """
+    counts, laws, years = load_counts("by_law")
+    ynow = years[-1]
+
+    def cal_score(g):
+        return sum(n * (r ** (ynow - y)) for y, n in counts[g].items()
+                   if ynow - window + 1 <= y <= ynow)
+
+    def cnt_score(g):
+        return sum(counts[g].values())
+
+    def rank_map(fn):
+        return {g: i + 1 for i, g in enumerate(sorted(laws, key=fn, reverse=True))}
+
+    r_cal, r_cnt = rank_map(cal_score), rank_map(cnt_score)
+
+    def recent(g, k):
+        return sum(n for y, n in counts[g].items() if ynow - k + 1 <= y <= ynow)
+
+    def early(g, cut=107):
+        return sum(n for y, n in counts[g].items() if y <= cut)
+
+    # 依「純總次數名次 − 校準名次」排序：負=校準降權、正=校準升權
+    delta = sorted(laws, key=lambda g: r_cnt[g] - r_cal[g])
+    print(f"# 校準實例：截至 {ynow} 年資料預測 {ynow + 1} 年（r={r}, 窗口={window}）\n")
+    print("欄位：法規 | 總次數 | 近3年 | ≤107年 | 純總次數名次 → 校準名次\n")
+    print("## 舊年代熱、近年冷 → 校準降權（名次下降）")
+    for g in delta[:topn]:
+        print(f"- {g}：總{cnt_score(g)} 近3年{recent(g,3)} ≤107年{early(g)} | "
+              f"第{r_cnt[g]} → 第{r_cal[g]}")
+    print("\n## 新興／近年才冒出 → 校準升權（名次上升）")
+    for g in delta[-topn:][::-1]:
+        print(f"- {g}：總{cnt_score(g)} 近3年{recent(g,3)} ≤107年{early(g)} | "
+              f"第{r_cnt[g]} → 第{r_cal[g]}")
+
+
 def main():
     print("# 猜題法條加權頻率校準（時序 back-test）\n")
     print("公式 S(g)=Σ_y n(g,y)·r^(Y_now−y)，以「≤Y−1 年資料預測第 Y 年分布」回測。")
@@ -167,4 +209,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--examples" in sys.argv:
+        show_examples()
+    else:
+        main()
