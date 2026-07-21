@@ -3,7 +3,7 @@
 
 用途：`/掌握度` 消防法規段需列出各法規「全部條文」畫覆蓋度熱區圖。為避免
 每次呈現重掃 statutes 全文，先由本腳本解析各法規 md 的結構單位（條／章）
-一次算出有序清單，輸出 reference/法規條文清單索引.md，呈現時只讀此索引。
+一次算出有序清單，輸出 reference/索引/法規條文清單索引.md，呈現時只讀此索引。
 
 只處理 by_law 出題頻率前 5 大法規（見 TOP5）。指名其他法規時由 skill
 當場讀該法 statutes（單一法規，成本低），不預存。
@@ -46,7 +46,8 @@ def parse(md: Path):
             chaps.append(c.group(1))
     if not arts and not chaps:
         # 逐章拆檔法規（如檢修基準）：hub 檔無章標題，改讀同名子資料夾各章檔之 H1
-        split_dir = md.parent / md.stem.split("_", 2)[-1]
+        # （子資料夾與 hub 主檔同名，含編號前綴，見 CLAUDE.md「資產資料夾規則」）
+        split_dir = md.parent / md.stem
         if split_dir.is_dir():
             for f in sorted(split_dir.glob("第*章*.md")):
                 h1 = f.read_text(encoding="utf-8").split("\n", 1)[0]
@@ -97,8 +98,8 @@ def main():
         else:
             out.append("- 章：" + "、".join(f"第{c}章" for c in items))
         out.append("")
-    (ROOT / "reference" / "法規條文清單索引.md").write_text("\n".join(out), encoding="utf-8")
-    print("已寫出 reference/法規條文清單索引.md")
+    (ROOT / "reference" / "索引" / "法規條文清單索引.md").write_text("\n".join(out), encoding="utf-8")
+    print("已寫出 reference/索引/法規條文清單索引.md")
 
 
 if __name__ == "__main__":
