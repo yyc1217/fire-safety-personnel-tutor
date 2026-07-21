@@ -2,7 +2,7 @@
 """將「附件三 消防圖說圖示範例」PDF 轉為可出題的結構化圖例資料。
 
 輸入：
-  statutes/附件/消防機關辦理建築物消防安全設備審查及查驗作業基準/附件三：消防圖說圖示範例.PDF
+  statutes/原始檔案/消防機關辦理建築物消防安全設備審查及查驗作業基準/附件三：消防圖說圖示範例.pdf
   scripts/legend_names.json（人工逐字轉寫之類別／名稱／備註）
 
 輸出（皆位於上述附件資料夾內）：
@@ -26,8 +26,8 @@ from PIL import Image
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ATTACH_DIR = os.path.join(
-    REPO, "statutes", "附件", "消防機關辦理建築物消防安全設備審查及查驗作業基準")
-PDF = os.path.join(ATTACH_DIR, "附件三：消防圖說圖示範例.PDF")
+    REPO, "statutes", "原始檔案", "消防機關辦理建築物消防安全設備審查及查驗作業基準")
+PDF = os.path.join(ATTACH_DIR, "附件三：消防圖說圖示範例.pdf")
 NAMES_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "legend_names.json")
 OUT_IMG_DIR = os.path.join(ATTACH_DIR, "附件三_圖例")
 OUT_MD = os.path.join(ATTACH_DIR, "附件三：消防圖說圖示範例.md")
@@ -176,7 +176,7 @@ def main():
              "categories": []}
     md = []
     md.append("# 附件三 消防圖說圖示範例（圖例對照表）\n")
-    md.append(f"> 來源：{data['source']}（原始檔：[附件三：消防圖說圖示範例.PDF](附件三：消防圖說圖示範例.PDF)）\n>\n"
+    md.append(f"> 來源：{data['source']}（原始檔：[附件三：消防圖說圖示範例.pdf](附件三：消防圖說圖示範例.pdf)）\n>\n"
               "> 📌 **免責聲明**：本表之圖例為原 PDF 300dpi 逐格裁切影像，名稱由影像辨識"
               "轉寫；原檔錯漏字經使用者確認後已更正，並於備註保留修改痕跡（原檔誤作「…」，"
               "已更正）。一切以主管機關（內政部消防署）公告之現行版本為準。\n")
