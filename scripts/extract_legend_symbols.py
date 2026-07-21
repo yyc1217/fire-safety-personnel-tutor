@@ -2,7 +2,7 @@
 """將「附件三 消防圖說圖示範例」PDF 轉為可出題的結構化圖例資料。
 
 輸入：
-  statutes/附件/消防機關辦理建築物消防安全設備審查及查驗作業基準/附件三：消防圖說圖示範例.PDF
+  statutes/原始檔案/消防機關辦理建築物消防安全設備審查及查驗作業基準/附件三：消防圖說圖示範例.PDF
   scripts/legend_names.json（人工逐字轉寫之類別／名稱／備註）
 
 輸出（皆位於上述附件資料夾內）：
@@ -26,7 +26,7 @@ from PIL import Image
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ATTACH_DIR = os.path.join(
-    REPO, "statutes", "附件", "消防機關辦理建築物消防安全設備審查及查驗作業基準")
+    REPO, "statutes", "原始檔案", "消防機關辦理建築物消防安全設備審查及查驗作業基準")
 PDF = os.path.join(ATTACH_DIR, "附件三：消防圖說圖示範例.PDF")
 NAMES_JSON = os.path.join(os.path.dirname(os.path.abspath(__file__)), "legend_names.json")
 OUT_IMG_DIR = os.path.join(ATTACH_DIR, "附件三_圖例")
