@@ -275,42 +275,97 @@ def render_buckets(L, sysname, sysres, lex, scope):
         L.append("")
 
 
-def render_conclusion(L, scope):
-    if scope == "師":
-        L.append(f"## {scope}篇 · 小結")
+def top_recurring(sc, k=3, min_frac=0.5):
+    """回傳該 scope 該層中最常回鍋之桶名（年年考者優先）。"""
+    buckets = sc.get("buckets", {})
+    if not buckets:
+        return []
+    active_years = len({y for ys in buckets.values() for y in ys})
+    ranked = sorted(buckets.items(), key=lambda kv: -len(kv[1]))
+    core = [b for b, ys in ranked if len(ys) >= max(2, min_frac * active_years)]
+    return (core or [b for b, _ in ranked])[:k]
+
+
+def render_conclusion(L, scope, systems):
+    kind = "申論" if scope == "師" else "測驗"
+    # 掃各系統×層，依置換檢定百分位分類：高於(>95)／低於(<5)／無異
+    high, low = [], []
+    for sysname, sysres in systems.items():
+        for layer in LADDER:
+            if layer not in sysres:
+                continue
+            sc = sysres[layer]["scopes"].get(scope)
+            if not sc or "perm" not in sc:
+                continue
+            pct = sc["perm"].get("percentile")
+            if pct is None:
+                continue
+            if pct > 95:
+                high.append((sysname, layer, sc))
+            elif pct < 5:
+                low.append((sysname, layer, sc))
+
+    # 小結
+    L.append(f"## {scope}篇 · 小結")
+    L.append("")
+    L.append(f"1. **粗顆粒度年年回鍋**：{kind}卷之設備／組件層重考率高，多與隨機無異或"
+             "**顯著高於隨機**——「去年考過今年不考」明顯不成立。")
+    L.append("2. **細顆粒度下降但非迴避**：隨顆粒度下降，但置換檢定顯示與隨機無異或顯著高於隨機，"
+             "下降屬機率，非命題者迴避。")
+    L.append("3. **裁決**：當篩題規則不可信；意義只在「同一核心考點今年多半**換一個子考點角度**」。")
+    L.append("")
+
+    # 實務建議：**只在達統計顯著時給方向**
+    L.append(f"## {scope}篇 · 實務建議（{kind}）")
+    L.append("")
+    L.append("> **原則**：僅在置換檢定**達統計顯著**時給方向性建議；與隨機無異之層級不另加權"
+             "（依歷年基礎頻率準備即可，勿因『去年考過』增減）。以下核心桶取自該層年年回鍋者。")
+    L.append("")
+    if high:
+        L.append("### 🔺 優先準備（顯著高於隨機：比隨機更常重考 → 去年考過今年極可能再考）")
         L.append("")
-        L.append("1. **設備／組件層年年回鍋**：師卷雖每年僅數題申論，仍命中核心考點；"
-                 "設備／組件層重考率高、多與隨機無異或顯著高於隨機——「去年考過今年不考」明顯不成立。")
-        L.append("2. **子考點層下降但非迴避**：隨顆粒度下降，但置換檢定顯示與隨機無異或"
-                 "**顯著高於隨機**（如公共危險物品場所之師子考點）——下降屬機率，非命題者迴避。")
-        L.append("3. **裁決**：當篩題規則不可信；意義只在「同一核心考點今年多半**換一個子考點角度**申論」。")
+        L.append("此類考點**回鍋率顯著高於機率**，是最穩的高投報方向，務必先掌握其年年回鍋之核心：")
         L.append("")
-        L.append(f"## {scope}篇 · 實務建議（申論）")
+        L.append("| 系統 · 層級 | 觀測/隨機 | 應優先熟練之核心考點 |")
+        L.append("|---|---:|---|")
+        for sysname, layer, sc in high:
+            perm = sc["perm"]
+            rr = f"{sc['repeat_rate']:.0f}%/{perm['null_mean']:.0f}%"
+            cores = "、".join(top_recurring(sc, 3))
+            L.append(f"| {sysname} · {layer} | {rr} | {cores} |")
         L.append("")
-        L.append("1. **別劃掉去年考點**：核心考點年年可再考，去年考古題照常精讀。")
-        L.append("2. **核心考點求深、預期換角度**：同一設備／法規主題每年常換一個子考點問法"
-                 "（去年問全揚程性能曲線、今年問呼水裝置連動），把各種問法（構造／數值／檢查方法／"
-                 "判定／計算）與跨主題整合通盤練熟，勿只背去年那一題。")
-        L.append("3. **冷門周邊主題看 CP 值**：偶發項隔年重出機率低可後排，但不保證不考。")
-        L.append("4. **搭配週期分析**：長間隔回鍋型見 [`命題週期分析.md`](命題週期分析.md)。")
+        if scope == "師":
+            L.append("> 申論導向：上列核心練到能**繪圖、寫檢查方法／判定、逐步計算**；"
+                     "並預期今年**換一個子考點角度**（同一核心、不同問法）。")
+        else:
+            L.append("> 測驗導向：上列核心之**具體數值／判定**（放水壓力、藥劑量、保安距離、管制量…）"
+                     "務必**背牢**，測驗年年反覆考這些硬數字。")
         L.append("")
     else:
-        L.append(f"## {scope}篇 · 小結")
+        L.append("### 🔺 優先準備（顯著高於隨機）")
         L.append("")
-        L.append("1. **測驗掃面廣、核心年年考**：士測驗卷每年掃過大量組件／主題，設備／組件層"
-                 "重考率高、常**顯著高於隨機**（比隨機更常重考）——「去年考過今年不考」在此完全不成立。")
-        L.append("2. **子考點層下降但多不低於隨機**：細分後重考率降，但與隨機無異或顯著高於隨機"
-                 "（如公共危險物品場所之士組件／子考點）——非迴避。")
-        L.append("3. **裁決**：當篩題規則不可信；且士測驗更吃**具體數值／判定之熟練度**。")
+        L.append("本等別無層級達「顯著高於隨機」，各系統依基礎頻率準備即可。")
         L.append("")
-        L.append(f"## {scope}篇 · 實務建議（測驗）")
+    if low:
+        L.append("### 🔻 可略降優先（顯著低於隨機：剛考過短期較少見）")
         L.append("")
-        L.append("1. **別劃掉去年考點**：測驗核心組件年年掃到，刪去年考點＝主動棄分。")
-        L.append("2. **核心組件全面掌握、背熟具體數值**：測驗常反覆考同一組件之不同數值／判定"
-                 "（放水壓力、藥劑量、保安距離、管制量…），子考點層常年重出，這些**硬數字要背牢**。")
-        L.append("3. **冷門周邊組件看 CP 值**：偶發項隔年重出機率低可後排，但不保證不考。")
-        L.append("4. **搭配週期分析**：長間隔回鍋型見 [`命題週期分析.md`](命題週期分析.md)。")
+        L.append("> ⚠️ 此類多為**最細子層、樣本極小且屬事後多重比較**，訊號脆弱，僅供微調、不保證不考。")
         L.append("")
+        L.append("| 系統 · 層級 | 觀測/隨機 | 說明 |")
+        L.append("|---|---:|---|")
+        for sysname, layer, sc in low:
+            perm = sc["perm"]
+            rr = f"{sc['repeat_rate']:.0f}%/{perm['null_mean']:.0f}%"
+            L.append(f"| {sysname} · {layer} | {rr} | 該層最細子項逐年輪替；"
+                     f"**去年剛熟練之特定細項**可略降重練優先（詳見上方該層桶分布），"
+                     f"惟樣本小，仍不保證不考。 |")
+        L.append("")
+    L.append("### ➖ 其餘（與隨機無異）")
+    L.append("")
+    L.append("上列以外之系統與層級**無回鍋／迴避訊號**，照歷年高頻考點準備，勿因去年是否考過而增減；"
+             "長間隔回鍋型併看 [`命題週期分析.md`](命題週期分析.md)。**任何層級都別劃掉去年考點**"
+             "（核心考點年年可再考）。")
+    L.append("")
 
 
 def build_md(result, lex, n_perm):
@@ -383,7 +438,7 @@ def build_md(result, lex, n_perm):
             L.append("### 桶分布")
             L.append("")
             render_buckets(L, sysname, sysres, lex, scope)
-        render_conclusion(L, scope)
+        render_conclusion(L, scope, systems)
 
     L.append("---")
     L.append("")
