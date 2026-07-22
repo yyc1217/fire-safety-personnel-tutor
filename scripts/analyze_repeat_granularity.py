@@ -339,6 +339,34 @@ def build_md(result, lex, n_perm):
              "`repeat_granularity.json` 供查）。")
     L.append("")
 
+    # 章節索引（GitHub 錨點；師／士重複之系統名以 -1 後綴，依文件出現順序計）
+    seen = {}
+
+    def anc(text):
+        s = re.sub(r"[^一-鿿0-9a-z \-_]", "", text.strip().lower())
+        s = s.replace(" ", "-")
+        n = seen.get(s, 0)
+        seen[s] = n + 1
+        return s if n == 0 else f"{s}-{n}"
+
+    sys_names = list(systems)
+    a_method = anc("核心方法：重考率 vs 隨機基準")
+    L.append("## 章節索引")
+    L.append("")
+    L.append(f"- [核心方法](#{a_method})")
+    for scope in ("師", "士"):
+        a_lvl = anc(LEVEL_LABEL[scope])
+        L.append(f"- [{LEVEL_LABEL[scope]}](#{a_lvl})")
+        sys_links = " · ".join(f"[{name}](#{anc(name)})" for name in sys_names)
+        L.append(f"    - 系統：{sys_links}")
+        a_sum = anc(f"{scope}篇 · 小結")
+        adv_label = "實務建議（申論）" if scope == "師" else "實務建議（測驗）"
+        a_adv = anc(f"{scope}篇 · {adv_label}")
+        L.append(f"    - [{scope}篇 · 小結](#{a_sum}) · [{scope}篇 · {adv_label}](#{a_adv})")
+    a_verdict = anc("兩等別共通裁決")
+    L.append(f"- [兩等別共通裁決](#{a_verdict})")
+    L.append("")
+
     for scope in ("師", "士"):
         L.append(f"# {LEVEL_LABEL[scope]}")
         L.append("")
