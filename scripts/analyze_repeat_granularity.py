@@ -129,37 +129,48 @@ def gate_pass(stem, layer_dict):
 
 
 def analyze_layer(questions, layer_dict, n_perm):
-    """對單一顆粒度層，回傳分桶年份分布、重考率、置換檢定、未分類率。"""
+    """對單一顆粒度層，回傳分桶年份分布、重考率、置換檢定、未分類率（皆分等級）。"""
     buckets = ordered_buckets(layer_dict)
     pairs_by_scope = {"師": [], "士": [], "合併": []}
-    bucket_years = defaultdict(set)
-    total = unclassified = 0
+    bucket_years_by_scope = {"師": defaultdict(set), "士": defaultdict(set),
+                             "合併": defaultdict(set)}
+    tot_by_scope = {"師": 0, "士": 0, "合併": 0}
+    unc_by_scope = {"師": 0, "士": 0, "合併": 0}
     for lv, yr, stem in questions:
         if not gate_pass(stem, layer_dict):
             continue
         b = classify(stem, buckets)
-        total += 1
+        tot_by_scope[lv] += 1
+        tot_by_scope["合併"] += 1
         if b is None:
-            unclassified += 1
+            unc_by_scope[lv] += 1
+            unc_by_scope["合併"] += 1
             continue
-        bucket_years[b].add(yr)
-        pairs_by_scope[lv].append((yr, b))
-        pairs_by_scope["合併"].append((yr, b))
+        for sc in (lv, "合併"):
+            bucket_years_by_scope[sc][b].add(yr)
+            pairs_by_scope[sc].append((yr, b))
     gated = bool(layer_dict.get("_gate"))
-    out = {"buckets": {b: sorted(ys) for b, ys in
-                       sorted(bucket_years.items(), key=lambda kv: -len(kv[1]))},
-           "gated": gated,
-           "n_total": total, "n_unclassified": unclassified,
-           "unclassified_rate": (unclassified / total * 100) if total else None,
-           "scopes": {}}
+    out = {"gated": gated, "scopes": {}}
     for scope, pairs in pairs_by_scope.items():
-        if not pairs:
-            continue
-        tp, tr, rate = repeat_rate(pairs)
-        perm = permutation_test(pairs, n_perm)
-        out["scopes"][scope] = {"n": len(pairs), "prev_total": tp,
-                                "repeats": tr, "repeat_rate": rate,
-                                "perm": perm}
+        tot = tot_by_scope[scope]
+        by = bucket_years_by_scope[scope]
+        entry = {
+            "buckets": {b: sorted(ys) for b, ys in
+                        sorted(by.items(), key=lambda kv: -len(kv[1]))},
+            "n_total": tot, "n_unclassified": unc_by_scope[scope],
+            "unclassified_rate": (unc_by_scope[scope] / tot * 100) if tot else None,
+        }
+        if pairs:
+            tp, tr, rate = repeat_rate(pairs)
+            entry.update({"n": len(pairs), "prev_total": tp, "repeats": tr,
+                          "repeat_rate": rate, "perm": permutation_test(pairs, n_perm)})
+        out["scopes"][scope] = entry
+    # 相容舊欄位（合併層級之桶分布／未分類，供既有引用）
+    merged = out["scopes"]["合併"]
+    out["buckets"] = merged["buckets"]
+    out["n_total"] = merged["n_total"]
+    out["n_unclassified"] = merged["n_unclassified"]
+    out["unclassified_rate"] = merged["unclassified_rate"]
     return out
 
 
@@ -208,7 +219,102 @@ def verdict(perm):
     return "與隨機無異（重考率下降＝顆粒度機率，非迴避）"
 
 
+LEVEL_LABEL = {"師": "師篇（消防設備師，申論為主）",
+               "士": "士篇（消防設備士，測驗為主＋部分申論）"}
+
+
+def render_ladder(L, sysres, scope):
+    L.append("| 顆粒度 | 桶數 | 題數 | 觀測重考率 | 隨機基準 | 隨機95%區間 | 觀測百分位 | 判讀 |")
+    L.append("|---|---:|---:|---:|---:|---:|---:|---|")
+    for layer in LADDER:
+        if layer not in sysres:
+            continue
+        sc = sysres[layer]["scopes"].get(scope)
+        if not sc or "perm" not in sc:
+            continue
+        perm = sc["perm"]
+        ci = perm.get("ci95")
+        ci_s = f"[{ci[0]:.0f}%,{ci[1]:.0f}%]" if ci else "—"
+        pct = perm.get("percentile")
+        pct_s = f"{pct:.0f}%" if pct is not None else "—"
+        L.append(f"| {layer} | {len(sc.get('buckets', {}))} | {sc['n']} | "
+                 f"{fmt_rate(sc['repeat_rate'])} | {fmt_rate(perm.get('null_mean'))} | "
+                 f"{ci_s} | {pct_s} | {verdict(perm)} |")
+    L.append("")
+
+
+def render_buckets(L, sysname, sysres, lex, scope):
+    for layer in LADDER:
+        if layer not in sysres:
+            continue
+        sc = sysres[layer]["scopes"].get(scope)
+        if not sc or not sc.get("buckets"):
+            continue
+        ld = lex["systems"][sysname]["layers"][layer]
+        focus = ld.get("_focus")
+        title = f"#### {layer} 層桶分布"
+        if focus:
+            title += f"（焦點：{focus}）"
+        L.append(title)
+        note = ld.get("_note")
+        if note:
+            L.append(f"> {note}")
+        urate = sc["unclassified_rate"]
+        if urate is not None:
+            if sysres[layer].get("gated"):
+                flag = " 🔴 詞庫待補" if urate > 20 else ""
+                L.append(f"> 未分類率：{urate:.0f}%（{sc['n_unclassified']}/{sc['n_total']}）{flag}")
+            else:
+                L.append(f"> 落桶率：{100 - urate:.0f}%（分母 {sc['n_total']} 題含他系統與"
+                         f"跨設備綜合題，未落桶非必為詞庫缺口，僅供參考）")
+        L.append("")
+        L.append("| 桶（考點） | 考過年數 | 出現年份 |")
+        L.append("|---|---:|---|")
+        for b, ys in sc["buckets"].items():
+            L.append(f"| {b} | {len(ys)} | {','.join(map(str, ys))} |")
+        L.append("")
+
+
+def render_conclusion(L, scope):
+    if scope == "師":
+        L.append(f"## {scope}篇 · 小結")
+        L.append("")
+        L.append("1. **設備／組件層年年回鍋**：師卷雖每年僅數題申論，仍命中核心考點；"
+                 "設備／組件層重考率高、多與隨機無異或顯著高於隨機——「去年考過今年不考」明顯不成立。")
+        L.append("2. **子考點層下降但非迴避**：隨顆粒度下降，但置換檢定顯示與隨機無異或"
+                 "**顯著高於隨機**（如公共危險物品場所之師子考點）——下降屬機率，非命題者迴避。")
+        L.append("3. **裁決**：當篩題規則不可信；意義只在「同一核心考點今年多半**換一個子考點角度**申論」。")
+        L.append("")
+        L.append(f"## {scope}篇 · 實務建議（申論）")
+        L.append("")
+        L.append("1. **別劃掉去年考點**：核心考點年年可再考，去年考古題照常精讀。")
+        L.append("2. **核心考點求深、預期換角度**：同一設備／法規主題每年常換一個子考點問法"
+                 "（去年問全揚程性能曲線、今年問呼水裝置連動），把各種問法（構造／數值／檢查方法／"
+                 "判定／計算）與跨主題整合通盤練熟，勿只背去年那一題。")
+        L.append("3. **冷門周邊主題看 CP 值**：偶發項隔年重出機率低可後排，但不保證不考。")
+        L.append("4. **搭配週期分析**：長間隔回鍋型見 [`命題週期分析.md`](命題週期分析.md)。")
+        L.append("")
+    else:
+        L.append(f"## {scope}篇 · 小結")
+        L.append("")
+        L.append("1. **測驗掃面廣、核心年年考**：士測驗卷每年掃過大量組件／主題，設備／組件層"
+                 "重考率高、常**顯著高於隨機**（比隨機更常重考）——「去年考過今年不考」在此完全不成立。")
+        L.append("2. **子考點層下降但多不低於隨機**：細分後重考率降，但與隨機無異或顯著高於隨機"
+                 "（如公共危險物品場所之士組件／子考點）——非迴避。")
+        L.append("3. **裁決**：當篩題規則不可信；且士測驗更吃**具體數值／判定之熟練度**。")
+        L.append("")
+        L.append(f"## {scope}篇 · 實務建議（測驗）")
+        L.append("")
+        L.append("1. **別劃掉去年考點**：測驗核心組件年年掃到，刪去年考點＝主動棄分。")
+        L.append("2. **核心組件全面掌握、背熟具體數值**：測驗常反覆考同一組件之不同數值／判定"
+                 "（放水壓力、藥劑量、保安距離、管制量…），子考點層常年重出，這些**硬數字要背牢**。")
+        L.append("3. **冷門周邊組件看 CP 值**：偶發項隔年重出機率低可後排，但不保證不考。")
+        L.append("4. **搭配週期分析**：長間隔回鍋型見 [`命題週期分析.md`](命題週期分析.md)。")
+        L.append("")
+
+
 def build_md(result, lex, n_perm):
+    systems = result["systems"]
     L = []
     L.append("# 命題重考率 × 顆粒度分析")
     L.append("")
@@ -227,98 +333,38 @@ def build_md(result, lex, n_perm):
     L.append(f"- **隨機基準（置換檢定，{n_perm} 次）**：打散年份標籤後之重考率分布。"
              "若觀測值落在此分布內（與隨機無異），代表重考率高低純屬「桶數 × 每年題數」之機率結果，"
              "**命題者並未刻意迴避去年考點**；唯有觀測**顯著低於**隨機，才是真有迴避效應。")
+    L.append(">")
+    L.append("> **編排原則（各等別獨立）**：師卷與士卷命題委員不同，本報告**先分師／士，再分系統**，"
+             "結論與實務建議亦分師／士；不呈現跨等別合併之判讀（合併數據仍存於 "
+             "`repeat_granularity.json` 供查）。")
     L.append("")
 
-    for sysname, sysres in result["systems"].items():
-        L.append(f"# {sysname}")
+    for scope in ("師", "士"):
+        L.append(f"# {LEVEL_LABEL[scope]}")
         L.append("")
-        # 顆粒度階梯：依「各等別獨立」原則，師／士各出一份完整階梯（含置換檢定），
-        # 合併僅供參考（跨等別合併違反各科獨立鐵則，不作主要判讀）。
-        L.append("> **各等別獨立判讀**：師卷與士卷命題委員不同，以下師／士各自成表；"
-                 "「師士合併」僅供參考，不作主要結論。")
-        L.append("")
-        for scope, tag in [("師", ""), ("士", ""), ("合併", "（僅參考，跨等別合併）")]:
-            has = any(scope in sysres[layer]["scopes"]
-                      for layer in LADDER if layer in sysres)
-            if not has:
+        for sysname, sysres in systems.items():
+            # 該系統於此等別是否有資料
+            if not any(scope in sysres[l]["scopes"] and "perm" in sysres[l]["scopes"][scope]
+                       for l in LADDER if l in sysres):
                 continue
-            L.append(f"## 顆粒度階梯 · {scope}{tag}")
+            L.append(f"## {sysname}")
             L.append("")
-            L.append("| 顆粒度 | 桶數 | 題數 | 觀測重考率 | 隨機基準 | 隨機95%區間 | 觀測百分位 | 判讀 |")
-            L.append("|---|---:|---:|---:|---:|---:|---:|---|")
-            for layer in LADDER:
-                if layer not in sysres:
-                    continue
-                lr = sysres[layer]
-                sc = lr["scopes"].get(scope)
-                if not sc:
-                    continue
-                perm = sc["perm"]
-                ci = perm.get("ci95")
-                ci_s = f"[{ci[0]:.0f}%,{ci[1]:.0f}%]" if ci else "—"
-                pct = perm.get("percentile")
-                pct_s = f"{pct:.0f}%" if pct is not None else "—"
-                L.append(f"| {layer} | {len(lr['buckets'])} | {sc['n']} | "
-                         f"{fmt_rate(sc['repeat_rate'])} | {fmt_rate(perm.get('null_mean'))} | "
-                         f"{ci_s} | {pct_s} | {verdict(perm)} |")
+            L.append("### 顆粒度階梯")
             L.append("")
-        # 各層桶分布
-        for layer in LADDER:
-            if layer not in sysres:
-                continue
-            lr = sysres[layer]
-            ld = lex["systems"][sysname]["layers"][layer]
-            focus = ld.get("_focus")
-            title = f"## {layer} 層桶分布"
-            if focus:
-                title += f"（焦點：{focus}）"
-            L.append(title)
-            note = ld.get("_note")
-            if note:
-                L.append(f"> {note}")
-            urate = lr["unclassified_rate"]
-            if urate is not None:
-                if lr.get("gated"):
-                    # 已閘門限定單一焦點設備，未分類＝該設備題未落任何桶＝詞庫缺口
-                    flag = " 🔴 詞庫待補" if urate > 20 else ""
-                    L.append(f"> 未分類率：{urate:.0f}%（{lr['n_unclassified']}/{lr['n_total']}）{flag}")
-                else:
-                    # 未閘門：分母含他系統題（士為水化學合併卷）與綜合／計算題，非詞庫缺口
-                    L.append(f"> 落桶率：{100 - urate:.0f}%（分母 {lr['n_total']} 題含他系統與"
-                             f"跨設備綜合題，未落桶非必為詞庫缺口，僅供參考）")
+            render_ladder(L, sysres, scope)
+            L.append("### 桶分布")
             L.append("")
-            L.append("| 桶（考點） | 考過年數 | 出現年份 |")
-            L.append("|---|---:|---|")
-            for b, ys in lr["buckets"].items():
-                L.append(f"| {b} | {len(ys)} | {','.join(map(str, ys))} |")
-            L.append("")
+            render_buckets(L, sysname, sysres, lex, scope)
+        render_conclusion(L, scope)
 
-    L.append("# 總結論")
+    L.append("---")
     L.append("")
-    L.append("1. **粗顆粒度（設備／組件）**：核心設備與主力組件幾乎**年年回鍋**，"
-             "「去年考過今年不考」在此層明顯不成立——砍掉去年考點等於棄守送分題。")
-    L.append("2. **細顆粒度（子考點／子子考點）**：重考率隨顆粒度下降，但置換檢定顯示"
-             "（樣本足夠之層）觀測值**與隨機基準無異**——下降純屬「桶多、每年名額少」之機率必然，"
-             "**並非命題者刻意迴避去年考點**。")
-    L.append("3. **子子考點層**樣本極小且屬事後多重比較，個別「顯著」多為雜訊，僅示範顆粒度效應。")
-    L.append("4. **可信度裁決**：此命題**當篩題規則不可信**（會漏掉年年必考之核心）；"
-             "僅在「同一核心組件今年多半換一個子考點角度切入」這層意義上近似成立——是「換角度」，非「不考」。")
+    L.append("## 兩等別共通裁決")
     L.append("")
-    L.append("## 實務建議（怎麼用這個結論讀書）")
-    L.append("")
-    L.append("1. **別把去年考點劃掉**：核心設備與主力組件年年回鍋，去年考過的今年照樣可能考，"
-             "刪去年考點＝主動棄分。去年考古題應**照常精讀**。")
-    L.append("2. **核心組件求「廣」、預期換角度**：對加壓送水裝置、撒水頭、藥劑儲存容器、防護區劃、"
-             "啟動裝置等常青組件，別只背去年那一個子考點——把該組件的**各種問法**（構造、數值、"
-             "檢查方法、判定、計算）通盤掌握，因為今年很可能換一個角度再問同一組件。")
-    L.append("3. **冷門周邊組件看 CP 值**：泡沫射水槍、連結送液口、放射表示燈等偶發項，"
-             "隔年重出機率低，時間有限時可**後排**，但不等於保證不考。")
-    L.append("4. **「今年不會重複」只在最細的子考點層近似成立**：可用來**微調**（去年考色標、"
-             "今年多練玻璃球試驗與耐洩漏試驗），但這是同一組件內**換細節**，不是換掉整個組件。")
-    L.append("5. **搭配週期分析一起看**：本報告談「隔年是否重考」，"
-             "長間隔回鍋型考點請併看 [`命題週期分析.md`](命題週期分析.md)（`analyze_cycles.py` 產出）。")
-    L.append("6. **師卷（申論）比士卷（測驗）更集中**：師卷每年僅 4 題、命中面窄，"
-             "更需靠核心組件的深度與跨組件整合，而非賭特定子考點是否重出。")
+    L.append("**「前一年考過的考點今年不會再考」不可信**：師、士兩卷皆然——粗顆粒度（設備／組件）"
+             "核心考點**年年回鍋**，細顆粒度重考率下降純屬顆粒度機率（多處甚至**顯著高於**隨機），"
+             "**無任何『迴避去年考點』之證據**。此口訣僅在「同一核心考點今年換一個子考點角度重出」"
+             "這層意義上近似成立——是**換角度、非不考**。")
     L.append("")
     L.append("> 方法學細節、置換檢定原理與完整警語見 "
              "[`docs/設計_重考率與顆粒度分析.md`](../docs/設計_重考率與顆粒度分析.md)。")
