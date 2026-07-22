@@ -232,42 +232,36 @@ def build_md(result, lex, n_perm):
     for sysname, sysres in result["systems"].items():
         L.append(f"# {sysname}")
         L.append("")
-        # 顆粒度階梯總表（合併師士）
-        L.append("## 顆粒度階梯（師士合併）")
+        # 顆粒度階梯：依「各等別獨立」原則，師／士各出一份完整階梯（含置換檢定），
+        # 合併僅供參考（跨等別合併違反各科獨立鐵則，不作主要判讀）。
+        L.append("> **各等別獨立判讀**：師卷與士卷命題委員不同，以下師／士各自成表；"
+                 "「師士合併」僅供參考，不作主要結論。")
         L.append("")
-        L.append("| 顆粒度 | 桶數 | 題數 | 觀測重考率 | 隨機基準 | 隨機95%區間 | 觀測百分位 | 判讀 |")
-        L.append("|---|---:|---:|---:|---:|---:|---:|---|")
-        for layer in LADDER:
-            if layer not in sysres:
+        for scope, tag in [("師", ""), ("士", ""), ("合併", "（僅參考，跨等別合併）")]:
+            has = any(scope in sysres[layer]["scopes"]
+                      for layer in LADDER if layer in sysres)
+            if not has:
                 continue
-            lr = sysres[layer]
-            merged = lr["scopes"].get("合併")
-            if not merged:
-                continue
-            perm = merged["perm"]
-            ci = perm.get("ci95")
-            ci_s = f"[{ci[0]:.0f}%,{ci[1]:.0f}%]" if ci else "—"
-            pct = perm.get("percentile")
-            pct_s = f"{pct:.0f}%" if pct is not None else "—"
-            L.append(f"| {layer} | {len(lr['buckets'])} | {merged['n']} | "
-                     f"{fmt_rate(merged['repeat_rate'])} | {fmt_rate(perm.get('null_mean'))} | "
-                     f"{ci_s} | {pct_s} | {verdict(perm)} |")
-        L.append("")
-        # 各層師/士分列重考率
-        L.append("## 分等級重考率")
-        L.append("")
-        L.append("| 顆粒度 | 師 重考率(題數) | 士 重考率(題數) |")
-        L.append("|---|---|---|")
-        for layer in LADDER:
-            if layer not in sysres:
-                continue
-            lr = sysres[layer]
-            cells = []
-            for scope in ("師", "士"):
+            L.append(f"## 顆粒度階梯 · {scope}{tag}")
+            L.append("")
+            L.append("| 顆粒度 | 桶數 | 題數 | 觀測重考率 | 隨機基準 | 隨機95%區間 | 觀測百分位 | 判讀 |")
+            L.append("|---|---:|---:|---:|---:|---:|---:|---|")
+            for layer in LADDER:
+                if layer not in sysres:
+                    continue
+                lr = sysres[layer]
                 sc = lr["scopes"].get(scope)
-                cells.append(f"{fmt_rate(sc['repeat_rate'])}（{sc['n']}）" if sc else "—")
-            L.append(f"| {layer} | {cells[0]} | {cells[1]} |")
-        L.append("")
+                if not sc:
+                    continue
+                perm = sc["perm"]
+                ci = perm.get("ci95")
+                ci_s = f"[{ci[0]:.0f}%,{ci[1]:.0f}%]" if ci else "—"
+                pct = perm.get("percentile")
+                pct_s = f"{pct:.0f}%" if pct is not None else "—"
+                L.append(f"| {layer} | {len(lr['buckets'])} | {sc['n']} | "
+                         f"{fmt_rate(sc['repeat_rate'])} | {fmt_rate(perm.get('null_mean'))} | "
+                         f"{ci_s} | {pct_s} | {verdict(perm)} |")
+            L.append("")
         # 各層桶分布
         for layer in LADDER:
             if layer not in sysres:
@@ -343,20 +337,22 @@ def main():
     with open(OUT_MD, "w", encoding="utf-8") as f:
         f.write(md)
     print(f"已產出：\n  {OUT_MD}\n  {OUT_JSON}")
-    # 主控台摘要
+    # 主控台摘要（各等別獨立）
     for sysname, sysres in result["systems"].items():
-        print(f"\n【{sysname}】顆粒度階梯（合併）：")
-        for layer in LADDER:
-            if layer not in sysres:
-                continue
-            m = sysres[layer]["scopes"].get("合併")
-            if not m:
-                continue
-            perm = m["perm"]
-            print(f"  {layer:<5} 重考率 {fmt_rate(m['repeat_rate']):>4}"
-                  f"｜隨機 {fmt_rate(perm.get('null_mean')):>4}"
-                  f"｜百分位 {perm.get('percentile')}"
-                  f"｜{verdict(perm)}")
+        print(f"\n【{sysname}】顆粒度階梯（師／士各別）：")
+        for scope in ("師", "士"):
+            print(f"  〔{scope}〕")
+            for layer in LADDER:
+                if layer not in sysres:
+                    continue
+                m = sysres[layer]["scopes"].get(scope)
+                if not m:
+                    continue
+                perm = m["perm"]
+                print(f"    {layer:<5} 重考率 {fmt_rate(m['repeat_rate']):>4}"
+                      f"｜隨機 {fmt_rate(perm.get('null_mean')):>4}"
+                      f"｜百分位 {perm.get('percentile')}"
+                      f"｜{verdict(perm)}")
 
 
 if __name__ == "__main__":
