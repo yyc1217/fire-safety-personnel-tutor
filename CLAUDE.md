@@ -118,3 +118,14 @@
 3. **資料夾內圖檔檔名去除冗餘法規前綴**（資料夾已提供命名空間），逐章拆檔者則以章為前綴（如 `第01章_滅火器_圖1-1.png`）。
 4. **分類容器**：`statutes/4_認可基準/`（第四節分類，內含 `4_01`～`4_12` 多支法規）以節號 `4_` 為前綴；`statutes/原始檔案/`（各法規原始來源檔）為唯一不加編號前綴之例外。
 5. **附檔名一律小寫**（`.pdf`／`.jpg`／`.png`／`.doc`／`.odt`）。
+
+---
+
+## 版本號規範（Standing Instruction）
+
+**只要開 PR 就必須新增版本號。** 每次建立 pull request 前，一律先升 plugin 版本號，且需**兩處同步**：
+
+1. `.claude-plugin/plugin.json` 之 `"version"`。
+2. `README.md` 檔首的 `![Version]` 徽章。
+
+版本遞增依語意化版本（SemVer，`MAJOR.MINOR.PATCH`）：新增功能升 MINOR、僅修正／文件升 PATCH、破壞性變更升 MAJOR。並於 `docs/變更紀錄.md` 補一則對應條目（含目錄連結）。
