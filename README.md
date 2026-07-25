@@ -72,10 +72,11 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ├── skills/                  # 五個功能 skill＋十個 slash command skill（各為 <名稱>/SKILL.md）
 │   └── exam-tutor/modes/    # exam-tutor 的六個互斥模式（按需載入，見 SKILL.md 模式路由）
 ├── scripts/                 # 維護者工具（見 scripts/README.md）
-└── docs/                    # 設計筆記、資料維護說明、待辦與變更紀錄（入口：docs/index.md）
+├── docs/                    # 設計筆記、資料維護說明、待辦（入口：docs/index.md）
+└── CHANGELOG.md             # 版本紀錄、資料工作、決策紀錄與里程碑（唯一變更紀錄）
 ```
 
-題庫與法規之維護細節（標籤索引流程、新年度試卷納入、法規整理規範）見 [`docs/資料維護.md`](docs/資料維護.md)；設計筆記、待辦與變更紀錄之總覽見 [`docs/index.md`](docs/index.md)。
+題庫與法規之維護細節（標籤索引流程、新年度試卷納入、法規整理規範）見 [`docs/資料維護.md`](docs/資料維護.md)；設計筆記與待辦之總覽見 [`docs/index.md`](docs/index.md)；歷次變更、決策紀錄與里程碑見 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 設計原則
 
