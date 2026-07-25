@@ -8,4 +8,4 @@ allowed-tools:
   - Grep
   - Bash(jq *)
 ---
-使用 exam-tutor skill 進入「掌握度視覺化模式」：先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入設定與 `progress.json`，計算各主題／系統／設備／法條之**內容覆蓋度**（已展現掌握之內容點 ÷ 相關內容總點數；分母見 `reference/索引/火災學主題知識點索引.md`、`reference/索引/設備條文索引.md`、`statutes/`），再依 `${CLAUDE_PLUGIN_ROOT}/reference/輸出格式/掌握度圖表格式.md` 產出文字條圖表。本模式**唯讀**，不寫任何檔。範圍：$ARGUMENTS
+使用 exam-tutor skill 進入「掌握度視覺化模式」——**先讀 `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/掌握度視覺化.md`**（該檔為本模式規範唯一真相），再依其執行：先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入設定與 `progress.json`，計算各主題／系統／設備／法條之**內容覆蓋度**（已展現掌握之內容點 ÷ 相關內容總點數；分母見 `reference/索引/火災學主題知識點索引.md`、`reference/索引/設備條文索引.md`、`statutes/`），再依 `${CLAUDE_PLUGIN_ROOT}/reference/輸出格式/掌握度圖表格式.md` 產出文字條圖表。本模式**唯讀**，不寫任何檔。範圍：$ARGUMENTS

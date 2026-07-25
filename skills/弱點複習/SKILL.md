@@ -8,4 +8,4 @@ allowed-tools:
   - Grep
   - Bash(jq *)
 ---
-使用 exam-tutor skill 進入「弱點複習模式」：先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入使用者設定與 `progress.json` 之 `weak_tally`，按弱點嚴重程度選題重考。範圍：$ARGUMENTS
+使用 exam-tutor skill 進入「弱點複習模式」——**先讀 `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/弱點複習.md`**（該檔為本模式規範唯一真相），再依其執行：先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入使用者設定與 `progress.json` 之 `weak_tally`，按弱點嚴重程度選題重考。範圍：$ARGUMENTS

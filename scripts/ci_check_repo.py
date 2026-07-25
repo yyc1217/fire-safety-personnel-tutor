@@ -243,7 +243,37 @@ def check_links() -> None:
 
 
 # --------------------------------------------------------------------------
-# 5. 格式規範（CLAUDE.md 之機械可驗部分）
+# 5. skill 內文之 ${CLAUDE_PLUGIN_ROOT} 路徑
+# --------------------------------------------------------------------------
+# 這些寫在行內 code 裡（非 markdown 連結），link 檢查看不到，需另外驗。
+PLUGIN_ROOT_REF = re.compile(r"\$\{CLAUDE_PLUGIN_ROOT\}/([^\s`)\"'，、。；：」）]+)")
+
+
+def check_plugin_paths() -> None:
+    """skill 內文引用之 ${CLAUDE_PLUGIN_ROOT}/... 路徑須存在（含模式檔路由）。"""
+    seen: set[str] = set()
+    for f in md_files(["skills"]):
+        text = read(f)
+        for m in PLUGIN_ROOT_REF.finditer(text):
+            target = m.group(1).rstrip(".,")
+            if PLACEHOLDER.search(target) or target.endswith("/"):
+                continue
+            seen.add(target)
+            if not (ROOT / target).exists():
+                line = text[: m.start()].count("\n") + 1
+                err(f"{rel(f)}:{line} 引用不存在的 plugin 路徑：${{CLAUDE_PLUGIN_ROOT}}/{target}")
+
+    # 反向：模式檔若沒有任何 skill 引用，等於孤兒（拆檔後忘了接上路由）
+    modes_dir = ROOT / "skills" / "exam-tutor" / "modes"
+    if modes_dir.is_dir():
+        for mode in sorted(modes_dir.glob("*.md")):
+            target = str(mode.relative_to(ROOT))
+            if target not in seen:
+                err(f"{target} 未被任何 skill 引用（模式檔須列入 exam-tutor 的模式路由表）")
+
+
+# --------------------------------------------------------------------------
+# 6. 格式規範（CLAUDE.md 之機械可驗部分）
 # --------------------------------------------------------------------------
 # 「任何有平方的數字／單位一律以上標 ² 表示」——適用所有內容資料夾
 SQUARED = re.compile(r"(?<![A-Za-z0-9])((?:c|m|k|d)?m|kgf/cm|N/mm)([23])(?![0-9A-Za-z\-])")
@@ -280,6 +310,7 @@ CHECKS = {
     "skills": check_skills,
     "corpus-index": check_corpus_index,
     "links": check_links,
+    "plugin-paths": check_plugin_paths,
     "format-rules": check_format_rules,
 }
 
