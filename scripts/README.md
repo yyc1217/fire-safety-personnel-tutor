@@ -13,6 +13,12 @@
 
 標準流程：編輯題目 `🏷️` 行 → `python3 scripts/rebuild_index.py` → `python3 scripts/analyze_corpus.py` → `python3 scripts/analyze_cycles.py`。
 
+## 命題分析（探索性，不回寫標籤）
+
+| 腳本 | 用途 |
+|------|------|
+| `analyze_repeat_granularity.py` | 驗證命題「前一年考過的考點今年不會再考」之可信度：以**四層顆粒度**（設備／組件／子考點／子子考點）計算重考率，並以**置換檢定**（隨機基準）判斷是否真有「迴避去年考點」效應。詞庫見 `repeat_lexicon.json`，產出 `corpus/命題重考率分析.md` 與 `corpus/repeat_granularity.json`。⚠️ 子考點以下採**關鍵字啟發式**分桶（準確度有限，同 `build_tags.py` 之教訓），**絕不回寫** `tags_index.json`／inline `🏷️` 語意標籤；方法學與警語見 `docs/設計_重考率與顆粒度分析.md`。 |
+
 ## 題庫品質校核（issue #3）
 
 | 腳本 | 用途 |
