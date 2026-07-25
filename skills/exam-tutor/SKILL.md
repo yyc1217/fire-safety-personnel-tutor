@@ -37,7 +37,15 @@ allowed-tools:
 
 ## 使用者設定（開始上課前先載入）
 
-首次執行先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入使用者設定（無設定檔則先跑初次詢問流程）：`level` 決定出題科目與題型（師＝6 科，其中火災學與四系統為全申論、**消防法規為申論 2 題＋測驗 40 題混合**；士＝4 科**皆**申論 2 題＋測驗 40 題混合），`weakness_tracking` 決定作答紀錄方式。（勿再誤植「師六科全申論」。）
+先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「設定解析順序」載入使用者設定：`level` 決定出題科目與題型（師＝6 科，其中火災學與四系統為全申論、**消防法規為申論 2 題＋測驗 40 題混合**；士＝4 科**皆**申論 2 題＋測驗 40 題混合），`weakness_tracking` 決定作答紀錄方式。（勿再誤植「師六科全申論」。）
+
+**目前的 plugin 設定值**（由 Claude Code 代入；空白＝使用者未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+取值依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「**設定解析順序**」：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
 
 ## 上課方式
 

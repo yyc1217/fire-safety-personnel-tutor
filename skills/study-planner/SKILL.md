@@ -32,7 +32,15 @@ allowed-tools:
 
 ### 1. 載入設定與考試日期
 
-依 `user-config-spec.md` 載入 `config.json`（無則先跑初次詢問）。
+**目前的 plugin 設定值**（由 Claude Code 代入；空白＝使用者尚未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+取值依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「**設定解析順序**」：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
+
+`exam_date`、`weekly_hours`、`progress_reminder` 不走 plugin 設定，一律讀寫 `<data_dir>/config.json`。
 
 **考試日期（`exam_date`）——初次使用本 skill 時必先確認**：config 尚無 `exam_date` 時，先向使用者確認下一次考試日期。確認方式：**主動推算並提出預設值**——消防設備人員考試**原則上於每年六月的第一個週末舉行（週六、週日兩天）**，故預設取「下一個六月的第一個週六」（今日已過當年考期則取次年），以民國日期呈現請使用者確認或改為考選部公告之實際日期。確認後記入 config，之後不再重複詢問。
 

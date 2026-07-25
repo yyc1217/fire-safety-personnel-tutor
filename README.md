@@ -47,7 +47,7 @@ claude plugin marketplace add https://github.com/yyc1217/fire-safety-personnel-t
 claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace
 ```
 
-初次使用任一功能時會詢問應考等別與弱點記錄模式（一次記住，`/備考設定` 可改）；學習進度存於使用者本機 `~/.fire-safety-tutor/`，plugin 目錄唯讀。
+安裝／啟用時 Claude Code 會跳出**設定對話框**，可直接填應考等別（師／士）、弱點記錄模式與學習資料目錄；**留空也沒關係**——初次使用任一功能時會詢問並記住（`/備考設定` 或 `/plugin` 設定對話框都可再改）。學習進度存於使用者本機 `~/.fire-safety-tutor/`（可改），plugin 目錄唯讀。
 
 > 📦 **安裝體積**：本 plugin **附完整原始資料**，工作樹約 **142 MB**（其中考古題原卷 PDF 37 MB、法規原始檔 55 MB），連同 git 歷史首次下載約 **265 MB**，請預留時間與磁碟空間。原始 PDF 是刻意入庫的——批改與查證時要能翻回官方原卷，不只看轉檔後的 md。
 

@@ -18,7 +18,15 @@ allowed-tools:
 
 ## 使用者設定（應考等別）
 
-首次執行先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入使用者設定（無設定檔則先跑初次詢問流程）。`level` 影響猜題範圍與比重：
+**目前的 plugin 設定值**（由 Claude Code 代入；空白＝使用者尚未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+取值依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「**設定解析順序**」：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
+
+`level` 影響猜題範圍與比重：
 
 - **師**：6 科。火災學、水系統、化學系統、警報系統、避難系統為**全申論**；**消防法規為申論 2 題＋測驗 40 題（混合）**。故師的猜題除各科申論考點外，**消防法規科**須另附「測驗高頻數字」。
 - **士**：4 科（火災學概要、消防法規概要、警報系統與避難系統概要、水系統與化學系統概要），**皆為申論 2 題＋測驗 40 題混合**——每科都須附「測驗高頻數字」。

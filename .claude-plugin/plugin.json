@@ -8,6 +8,24 @@
   "homepage": "https://github.com/yyc1217/fire-safety-personnel-tutor",
   "repository": "https://github.com/yyc1217/fire-safety-personnel-tutor",
   "license": "MIT",
+  "userConfig": {
+    "level": {
+      "type": "string",
+      "title": "應考等別",
+      "description": "填「師」＝消防設備師（6 科）或「士」＝消防設備士（4 科）。留空則首次使用時由 Claude 詢問並說明差異。"
+    },
+    "weakness_tracking": {
+      "type": "string",
+      "title": "弱點記錄模式",
+      "description": "auto＝作答後自動寫入本機進度檔；notes＝不寫檔，每次練習結束產出弱點筆記由你自行保存；none＝完全不記錄。留空則首次使用時由 Claude 詢問並說明差異。"
+    },
+    "data_dir": {
+      "type": "directory",
+      "title": "學習資料目錄",
+      "description": "設定、作答紀錄、讀書計畫與猜題產物的存放位置。plugin 目錄一律唯讀，你的資料只寫在這裡。",
+      "default": "~/.fire-safety-tutor"
+    }
+  },
   "keywords": [
     "消防設備師",
     "消防設備士",

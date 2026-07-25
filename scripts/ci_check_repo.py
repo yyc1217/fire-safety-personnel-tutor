@@ -263,6 +263,8 @@ def check_plugin_paths() -> None:
                 line = text[: m.start()].count("\n") + 1
                 err(f"{rel(f)}:{line} 引用不存在的 plugin 路徑：${{CLAUDE_PLUGIN_ROOT}}/{target}")
 
+    check_user_config_refs()
+
     # 反向：模式檔若沒有任何 skill 引用，等於孤兒（拆檔後忘了接上路由）
     modes_dir = ROOT / "skills" / "exam-tutor" / "modes"
     if modes_dir.is_dir():
@@ -270,6 +272,42 @@ def check_plugin_paths() -> None:
             target = str(mode.relative_to(ROOT))
             if target not in seen:
                 err(f"{target} 未被任何 skill 引用（模式檔須列入 exam-tutor 的模式路由表）")
+
+
+USER_CONFIG_REF = re.compile(r"\$\{user_config\.([A-Za-z0-9_]+)\}")
+
+
+def check_user_config_refs() -> None:
+    """${user_config.X} 之 X 須在 plugin.json 的 userConfig 宣告，且宣告者須有人用。"""
+    try:
+        declared = set(json.loads(read(ROOT / ".claude-plugin" / "plugin.json")).get("userConfig", {}))
+    except Exception:  # noqa: BLE001
+        return  # manifest 的問題由 check_manifests 負責回報
+
+    used: set[str] = set()
+    for f in md_files(["skills"]):
+        text = read(f)
+        for m in USER_CONFIG_REF.finditer(text):
+            used.add(m.group(1))
+            if m.group(1) not in declared:
+                line = text[: m.start()].count("\n") + 1
+                err(
+                    f"{rel(f)}:{line} 引用未宣告的 user_config 鍵：{m.group(1)}"
+                    f"（未宣告者不會被代入，會原樣顯示成文字；已宣告：{sorted(declared)}）"
+                )
+
+    for key in sorted(declared - used):
+        err(f"plugin.json 宣告了 userConfig.{key}，但沒有任何 skill 以 ${{user_config.{key}}} 取用")
+
+    # reference/ 由 Read 工具讀入，不會做 ${user_config.*} 代入，寫在那裡等於失效
+    for f in md_files(["reference"]):
+        text = read(f)
+        for m in USER_CONFIG_REF.finditer(text):
+            line = text[: m.start()].count("\n") + 1
+            err(
+                f"{rel(f)}:{line} 在 reference/ 使用 {m.group(0)}：代入只發生在 skill 內文，"
+                f"此處會原樣顯示。請改寫成規則描述，實際值回到 SKILL.md 取。"
+            )
 
 
 # --------------------------------------------------------------------------

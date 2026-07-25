@@ -28,6 +28,14 @@ allowed-tools:
 
 路徑一律以 `${CLAUDE_PLUGIN_ROOT}` 解析；對 plugin 目錄一律**唯讀**，產出只寫入使用者 `data_dir`。
 
+**目前的 plugin 設定值**（由 Claude Code 代入；空白＝使用者尚未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+取值依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「**設定解析順序**」：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
+
 ## 工作流程
 
 ### 1. 內建優先，即時補充
