@@ -1,6 +1,11 @@
 ---
 name: study-planner
 description: 消防設備師／士讀書計畫：以消防安全設備為主體、按師/士命題頻率主動規劃研讀順序（設置標準、檢修基準、公危管理及其他法規），產出可勾銷的順序清單或逐週排程，並追蹤進度。當使用者說「讀書計畫」「幫我排計畫」「怎麼準備」「接下來讀什麼」「進度到哪」時使用。出題批改請用 exam-tutor；記憶整理請用 statute-memorizer。
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
 ---
 
 # 讀書計畫（study-planner）
@@ -76,6 +81,7 @@ description: 消防設備師／士讀書計畫：以消防安全設備為主體�
 | 情況 | 處理 |
 |------|------|
 | `tags_summary.json` 不存在 | 退化為讀 `corpus/命題頻率分析.md` 粗估排序，標注「頻率為粗估」 |
+| **`jq` 未安裝**（`command not found`） | 不中止：改以 `python3 -c "import json;d=json.load(open('corpus/tags_summary.json'));print(json.dumps(d[<鍵>],ensure_ascii=False))"` 取單鍵 |
 | 無 `progress.json` | 照常產出計畫（全部未完成起步） |
 | 使用者不確定考試日期 | 以推算之預設值（下一個六月的第一個週末）暫排，標注「以考選部公告為準」，不重複催問 |
 | 使用者不要存檔 | 對話中呈現，不寫檔 |

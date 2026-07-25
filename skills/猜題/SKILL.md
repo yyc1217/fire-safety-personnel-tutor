@@ -2,6 +2,13 @@
 description: 考前猜題：先秒回近10年加權頻率＋出題週期型態之統計結果（依考試科目分層、一問一答），詢問後才可選上網補修法/函令/時事動態
 argument-hint: [可指定科目或範圍，留空分析全部]
 disable-model-invocation: true
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
+  - WebSearch
+  - WebFetch
 ---
 使用 exam-trend-forecast skill：先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入應考等別（無設定檔則先跑初次詢問），**輸出格式一律依 `${CLAUDE_PLUGIN_ROOT}/reference/輸出格式/猜題報告格式.md`（格式唯一真相），採兩段式**：
 

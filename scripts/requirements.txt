@@ -1,0 +1,22 @@
+# 維護者工具相依（scripts/）——plugin 使用者不需安裝
+#
+#   python3 -m venv .venv && source .venv/bin/activate
+#   pip install -r scripts/requirements.txt
+#
+# 多數腳本（rebuild_index / analyze_corpus / analyze_cycles / audit_article_tags /
+# build_article_list / calibrate_weights / check_statute_versions / rtf2md_statute /
+# html2md_statute）只用標準函式庫，無需安裝任何套件。
+# 下列套件僅供 PDF／影像處理類腳本使用。
+
+# PDF 解析：check_option_order.py（原卷文字流比對）、extract_figures.py（裁切圖形題附圖）
+PyMuPDF>=1.24
+
+# 影像處理：extract_legend_symbols.py（圖例切割與去白邊）
+Pillow>=10.0
+numpy>=1.26
+
+# --- 另需系統層工具（非 pip 套件）---
+# poppler-utils：提供 pdftotext / pdftoppm
+#   pdf2md_statute.py、pdf_tables_extract.py、check_option_order.py、extract_legend_symbols.py
+#   macOS:          brew install poppler
+#   Debian/Ubuntu:  apt install poppler-utils

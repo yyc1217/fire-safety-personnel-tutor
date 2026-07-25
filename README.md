@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.9.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -49,6 +49,17 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 
 初次使用任一功能時會詢問應考等別與弱點記錄模式（一次記住，`/備考設定` 可改）；學習進度存於使用者本機 `~/.fire-safety-tutor/`，plugin 目錄唯讀。
 
+> 📦 **安裝體積**：本 plugin **附完整原始資料**，工作樹約 **142 MB**（其中考古題原卷 PDF 37 MB、法規原始檔 55 MB），連同 git 歷史首次下載約 **265 MB**，請預留時間與磁碟空間。原始 PDF 是刻意入庫的——批改與查證時要能翻回官方原卷，不只看轉檔後的 md。
+
+### 前置需求
+
+| 工具 | 用途 | 缺少時 |
+|------|------|--------|
+| `jq` | 查標籤索引（`corpus/tags_index.json` 約 370 KB，只取單鍵不整檔載入） | 自動改以 `python3 -c` 讀取，較慢但功能不變 |
+| `pdftoppm`（poppler-utils） | 把原卷 PDF 指定頁轉圖以判讀圖形題 | 圖形題改以文字描述說明，並附原卷頁碼供自行開啟 |
+
+兩者皆為選配（macOS：`brew install jq poppler`；Debian／Ubuntu：`apt install jq poppler-utils`）。各 skill 已宣告 `allowed-tools`，這些唯讀查詢不會反覆跳權限提示；**寫入使用者資料仍會逐次徵詢同意**。
+
 > ⏳ **關於等待時間**：`/猜題` 採兩段式——第一段本地統計結果**很快就好**；之後詢問是否上網彙整近 12–24 個月官方修法／函令／時事，**同意才執行**、約需 5–8 分鐘。`/申論猜題` 與整卷 `/出考卷` 屬重工作（自行命題並附解答），**約需 5–8 分鐘（實際視你的使用設定與網路環境而定）**，過程不是卡住，請耐心稍候。其餘快節奏功能（`/抽考`、`/對照表` 等）則很快。
 
 ## 目錄結構
@@ -58,7 +69,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
 ├── statutes/                # 命題大綱法規現行全文 md
 ├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格、輸出格式範本
-├── skills/                  # 五個功能 skill＋九個 slash command skill（各為 <名稱>/SKILL.md）
+├── skills/                  # 五個功能 skill＋十個 slash command skill（各為 <名稱>/SKILL.md）
 ├── scripts/                 # 維護者工具（見 scripts/README.md）
 └── docs/                    # 設計筆記、資料維護說明、待辦與變更紀錄（入口：docs/index.md）
 ```
@@ -74,4 +85,14 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 
 ## License
 
-見 [LICENSE](LICENSE)。考古題為考選部公開資料；法條為公開法令。
+**程式碼與整理成果** —— skill 定義、腳本、索引、對照表、輸出格式範本、各法規之 markdown 轉寫與標註：MIT，見 [LICENSE](LICENSE)。
+
+**原始資料不在 MIT 授權標的之內**，各依原出處條款：
+
+| 資料 | 來源 | 條款 |
+|------|------|------|
+| `corpus/pdf/` 歷屆試題與答案卷 | 考選部 | 政府公開資訊，依考選部網站使用規定 |
+| `docs/命題大綱/` 命題大綱 | 考選部 | 同上 |
+| `statutes/原始檔案/` 法規原文（PDF／DOC／ODT） | 全國法規資料庫、內政部消防署 | 法規原文不受著作權法保護（著作權法第 9 條） |
+
+引用法條前請依主管機關公告之**現行版本**核對；本 repo 之 md 為整理當下的版本快照，各檔檔首附「📌 免責聲明」與版本日期。

@@ -1,6 +1,11 @@
 ---
 name: exam-archive
 description: 查詢消防設備師／士歷屆考古題題庫清單，並提供指定試卷的原卷 PDF、標準答案卷或 md 全文。當使用者說「給我某年某科的考卷／原卷／PDF」「題庫有哪些年度」「列出考古題清單」「找某一年的答案卷」時使用。出題練習請用 exam-tutor，命題趨勢請用 exam-trend-forecast。
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
 ---
 
 # 考古題檔案庫查詢（exam-archive）
@@ -24,5 +29,6 @@ description: 查詢消防設備師／士歷屆考古題題庫清單，並提供�
 ## 注意事項
 
 - 找不到對應試卷（年度或科目不在 index.json）時，直接列出現有清單供使用者選擇，並提示可依 `corpus/INGEST.md` 自行納入新試卷。
+- **`jq` 未安裝**（`command not found`）時不中止：改以 `python3 -c "import json;d=json.load(open('corpus/tags_index.json'));print(json.dumps(d['by_article']['設置標準第12條'],ensure_ascii=False))"` 取單鍵，**維持「只取所需單鍵、勿整檔輸出」**的鐵則。
 - 提供答案時一律以 md 內嵌答案（已含更正）為準，並附上答案卷 PDF 供查證。
 - 提醒使用者：試卷與其標準答案反映**當年**法規（`law_snapshot`），不可當現行法源；條文現況請以官方現行版為準——**全國法規資料庫**（<https://law.moj.gov.tw/>）與**內政部消防署「消防法令」**（<https://www.nfa.gov.tw/>）。歷屆答案可能因事後修法而與現行規定不符。

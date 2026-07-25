@@ -1,6 +1,14 @@
 ---
 name: exam-tutor
 description: 擔任消防設備師／士家教：依考古題風格出題、收作答、批改與講解，或按系統整批複習。當使用者說「出題」「考我」「練習」「模擬考」「抽考」「快考幾題」「弱點複習」「幫我改這題」「這題幾分」「複習」「帶我看某系統的規定」「整理某系統」時使用。命題趨勢預測請用 exam-trend-forecast；記憶重點與跨法規對照表請用 statute-memorizer。
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
+  - Bash(pdftoppm *)
+  - WebSearch
+  - WebFetch
 ---
 
 # 消防安全設備家教（exam-tutor）
@@ -217,6 +225,8 @@ description: 擔任消防設備師／士家教：依考古題風格出題、收�
 | 情況 | 處理 |
 |------|------|
 | `corpus/index.json` 不存在或 `papers` 為空 | 告知題庫尚未放入，提示依 `corpus/INGEST.md` 納入；可暫以類型 3（自行出題）搭配 statutes 出題 |
+| **`jq` 未安裝**（`command not found`） | 不中止：改以 `python3 -c` 取單鍵，效果相同——`python3 -c "import json;d=json.load(open('corpus/tags_index.json'));print(json.dumps(d['by_article']['設置標準第12條'],ensure_ascii=False))"`。**維持「只取所需單鍵、勿整檔輸出」**的鐵則 |
+| **`pdftoppm` 未安裝**（poppler-utils 缺席） | 該題附圖無法轉圖判讀：改以文字描述題目情境並附「原卷第 N 頁」供使用者自行開啟，或改抽無附圖之題目；不得憑空杜撰圖形內容 |
 | 題目附圖的 PDF 缺失 | 告知該題圖無法呈現，改抽其他題或口頭描述 |
 | statutes 缺條文且網路抓不到 | 停下求助使用者 |
 | 無網路 | 明示「本次未含最新法規動態」，僅以 statutes 既有版本作答並標注版本日期 |

@@ -1,5 +1,11 @@
 # Claude Code 專案指令
 
+> ⚠️ **適用範圍：僅限本 repo 的開發與資料維護作業。**
+> 本檔是**維護者**在本 repo 內工作時的規範（法規入庫、格式校正、標籤維護），對安裝本 plugin 的**使用者不生效**。
+> 面向使用者的行為一律定義在 `skills/*/SKILL.md` 與 `reference/`；本檔的規範若需影響使用者端輸出，**必須另外寫進對應的 SKILL.md 或 `reference/輸出格式/`**。
+>
+> **本檔放在 `.claude/CLAUDE.md` 而非 repo 根目錄**：官方對兩個位置一視同仁（皆載入為專案脈絡），但 plugin **根目錄**的 `CLAUDE.md` 會被 `claude plugin validate` 警告為無效內容（plugin 不透過 CLAUDE.md 提供脈絡）。放進 `.claude/` 可同時保有維護者脈絡與乾淨的 plugin 驗證。
+
 ## 使用語言
 
 與使用者對話請使用**繁體中文**。

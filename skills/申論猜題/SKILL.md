@@ -2,6 +2,13 @@
 description: 申論題猜題＋擬答：依猜題範圍或指定科目預測申論題目，附答題架構與擬答（每一論點附法源）
 argument-hint: [科目或考點，如：消防法規、瓦斯漏氣警報；留空用最近一次猜題範圍]
 disable-model-invocation: true
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
+  - WebSearch
+  - WebFetch
 ---
 直接使用 **exam-tutor** skill 的「申論猜題＋擬答模式」，**產出預測題目＋答題架構＋擬答**。
 

@@ -2,6 +2,13 @@
 description: 自行命題產生一份仿真模擬試卷：仿最新年度原卷之版面格式（首尾標註【模擬考】），依科目自動選卷型出整卷申論／測驗題並附標準答案與評分要點。要某年考古題原卷請改用題庫查詢
 argument-hint: [科目，如：消防法規、水系統；留空則詢問應考科目]
 disable-model-invocation: true
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
+  - WebSearch
+  - WebFetch
 ---
 使用 exam-tutor skill 進入「整卷模擬考模式」：
 

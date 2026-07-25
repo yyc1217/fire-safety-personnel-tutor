@@ -1,6 +1,11 @@
 ---
 name: statute-memorizer
 description: 消防設備師／士法規記憶助手：整理易混淆的數字、時限、面積、罰則成記憶重點（記憶卡、口訣）、製作跨法規對照表，以及考前必背懶人包。當使用者說「幫我整理」「記憶重點」「做記憶卡」「口訣」「對照表」「比較各法規的…」「這些數字怎麼記」「懶人包」時使用。出題批改請用 exam-tutor；命題趨勢請用 exam-trend-forecast。
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
 ---
 
 # 法規記憶助手（statute-memorizer）
@@ -68,6 +73,7 @@ description: 消防設備師／士法規記憶助手：整理易混淆的數字�
 | 情況 | 處理 |
 |------|------|
 | `reference/對照表/` 不存在 | 全部改即時生成並說明 |
+| **`jq` 未安裝**（`command not found`） | 不中止：改以 `python3 -c "import json;d=json.load(open('corpus/tags_summary.json'));print(json.dumps(d[<鍵>],ensure_ascii=False))"` 取單鍵 |
 | 目錄存在但該主題**無對應內建表**（常態） | 懶人包來源 (3) 略過：必背內容改自 statutes 即時擷取，狀態列標「無對應內建對照表」、不列 `出處：` 欄；`/對照表` 則走「即時生成」路徑（§1.2） |
 | statutes 缺相關法規且網路抓不到 | 明示缺漏範圍，僅整理可查證部分 |
 | 無網路 | 照常整理，標注「未經線上核對，以本地版本日期為準」 |
