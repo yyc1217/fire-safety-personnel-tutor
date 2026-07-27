@@ -58,7 +58,26 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 | `jq` | 查標籤索引（`corpus/tags_index.json` 約 370 KB，只取單鍵不整檔載入） | 自動改以 `python3 -c` 讀取，較慢但功能不變 |
 | `pdftoppm`（poppler-utils） | 把原卷 PDF 指定頁轉圖以判讀圖形題 | 圖形題改以文字描述說明，並附原卷頁碼供自行開啟 |
 
-兩者皆為選配（macOS：`brew install jq poppler`；Debian／Ubuntu：`apt install jq poppler-utils`）。各 skill 已宣告 `allowed-tools`，這些唯讀查詢不會反覆跳權限提示；**寫入使用者資料仍會逐次徵詢同意**。
+兩者皆為選配（macOS：`brew install jq poppler`；Debian／Ubuntu：`apt install jq poppler-utils`）。
+
+### 權限提示
+
+各 skill 已宣告 `allowed-tools`，但 Claude Code 的這項授權**只涵蓋「叫用指令的那一個對話回合」，你送出下一則訊息就失效**。所以 `/抽考`、`/弱點複習` 這種一題一答的多回合流程，**第二題起查索引、讀條文仍會再問一次**；`/掌握度`、`/出考卷` 這類單回合產出則不受影響。
+
+想讓唯讀查詢在整個 session 都不再詢問，請自行在 `~/.claude/settings.json` 加 allow 規則——**plugin 無法代為設定權限**，這是 Claude Code 的安全邊界：
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(jq *)", "Bash(pdftoppm *)"],
+    "additionalDirectories": ["~/.fire-safety-tutor"]
+  }
+}
+```
+
+`jq` 與 `pdftoppm` 不在 Claude Code 內建的唯讀指令清單裡，所以預設會問；`additionalDirectories` 則讓**讀取**你的學習資料目錄不再跳提示（只加這一行不會讓寫入變成免詢問）。
+
+**寫入使用者資料一律逐次徵詢同意**：`Write`／`Edit` 刻意不列入任何 skill 的 `allowed-tools`，也**不建議**你把它們加進 allow 規則——你的作答紀錄與讀書計畫每次被改動時都該讓你看到。
 
 > ⏳ **關於等待時間**：`/猜題` 採兩段式——第一段本地統計結果**很快就好**；之後詢問是否上網彙整近 12–24 個月官方修法／函令／時事，**同意才執行**、約需 5–8 分鐘。`/申論猜題` 與整卷 `/出考卷` 屬重工作（自行命題並附解答），**約需 5–8 分鐘（實際視你的使用設定與網路環境而定）**，過程不是卡住，請耐心稍候。其餘快節奏功能（`/抽考`、`/對照表` 等）則很快。
 
