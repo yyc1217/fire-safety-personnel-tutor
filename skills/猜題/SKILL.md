@@ -1,4 +1,5 @@
 ---
+name: 猜題
 description: 考前猜題：先秒回近10年加權頻率＋出題週期型態之統計結果（依考試科目分層、一問一答），詢問後才可選上網補修法/函令/時事動態
 argument-hint: [可指定科目或範圍，留空分析全部]
 disable-model-invocation: true

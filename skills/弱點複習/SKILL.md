@@ -1,4 +1,5 @@
 ---
+name: 弱點複習
 description: 考前弱點總複習：讀取作答紀錄中常錯的考點，優先重考與講解
 argument-hint: [可指定範圍，如某系統或某設備]
 disable-model-invocation: true

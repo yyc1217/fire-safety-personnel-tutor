@@ -1,4 +1,5 @@
 ---
+name: 懶人包
 description: 考前必背懶人包：猜題範圍＋平時弱點濃縮成必背條文重點＋記憶術一份文件
 argument-hint: [可指定考點數量或科目，預設前 20 個考點]
 disable-model-invocation: true

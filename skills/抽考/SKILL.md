@@ -1,4 +1,5 @@
 ---
+name: 抽考
 description: 快速抽考一輪 3~5 題，適合零碎時間複習（可指定系統/設備/科目/題數）
 argument-hint: [範圍或題數，留空則依弱點與頻率自動選]
 disable-model-invocation: true

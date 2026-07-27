@@ -27,6 +27,13 @@
 
 本版含兩批工作：**發布層與 plugin 規格體檢**（原標 0.9.0，因 `main` 已於 2026-07-22 發布 0.9.0「考點重考率×顆粒度分析」而併入本版）＋ **skill 結構重整**。
 
+### 修正
+
+- **🔴 十個中文斜線指令全部叫不起來**（issue #59 實測發現）：`/抽考`、`/猜題`、`/掌握度`、`/讀書計畫`、`/出考卷`、`/備考設定`、`/弱點複習`、`/申論猜題`、`/懶人包`、`/對照表` 皆未註冊，叫用時回 `Unknown skill ... Did you mean fire-safety-personnel-tutor:--?`（`--` 即指令名推導失敗的殘骸）。**README 宣傳的整組斜線指令等於失效**，只有 5 支 ASCII 命名的 skill（`exam-tutor` 等）可用。
+  - **根因**：plugin skill 的**目錄名為非 ASCII、且 frontmatter 未設 `name:` 時**，指令名推導失敗而不註冊。以合成 plugin 逐一拆變因驗證：無 `name:`＋ASCII 目錄 ✅、有 `name:`＋ASCII ✅、有 `name:`＋中文 ✅、**無 `name:`＋中文 ❌**。本 plugin 的 5 支 ASCII skill 都有 `name:`，10 支中文指令都沒有。
+  - **修法**：十個 `SKILL.md` 各補一行 `name: <目錄名>`。**中文指令名本身沒有問題**，補上 `name:` 即可，不必改成英文。
+  - 附帶確認：修好後 `/備考設定` 立即可用並正確印出代入值（`level: 士`），**同時實證了本版 `${user_config.*}` 代入區塊的修正在指令檔上確實生效**。
+
 ### 新增
 
 - **導入 plugin `userConfig`**：應考等別、弱點記錄模式與學習資料目錄改為可在 Claude Code 的 `/plugin` 設定對話框直接填寫，值由 Claude Code 代入各 skill 內文（`${user_config.*}`），不必等到第一次對話才被問。
