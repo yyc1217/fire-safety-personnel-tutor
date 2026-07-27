@@ -37,6 +37,7 @@
   - **代入區塊補進全部 user-invocable 指令**（issue #59 驗證發現）：`${user_config.*}` 只在「**被叫用的那份 SKILL.md**」內文代入，模式檔與 `reference/` 檔案由 Read 讀入、佔位符不代入。原先只有 `exam-tutor`／`exam-trend-forecast`／`statute-memorizer`／`study-planner`／`備考設定` 帶有代入區塊，而使用者實際打的是 `/抽考`、`/出考卷` 等指令檔，故順序 1 取不到值。現於 `抽考`、`掌握度`、`弱點複習`、`申論猜題`、`出考卷`、`猜題`、`懶人包`、`讀書計畫` 八支指令各補上代入區塊。
     - **`/出考卷` 影響最大**：它以 `context: fork` 執行，看不到主對話也無法提問，修正前只在 `/plugin` 對話框填過等別、且無 `config.json` 的使用者會拿到**預設「師」的卷**而不自知。
     - `user-config-spec.md` 同步載明此界線，並明訂「看到字面 `${user_config.level}` **不等於未設定**」，避免誤入初次詢問流程。
+    - **CI 補上防迴歸檢查**（`plugin-paths`）：正文提及 `user-config-spec.md`／`<data_dir>`／`config.json`／`progress.json` 的 `SKILL.md` 若缺代入區塊即 FAIL；`SKILL.md` 以外的檔案（模式檔等）出現 `${user_config.*}` 亦 FAIL——與既有的「`reference/` 不得使用」同一條界線的另外兩半。判斷「這支是否會用到設定」只看代入區塊**之前**的正文，否則區塊自身提及 `<data_dir>` 會使判斷循環。
 
 ### 變更
 

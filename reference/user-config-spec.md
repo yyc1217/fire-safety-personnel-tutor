@@ -25,6 +25,7 @@
 
 - **代入只發生在「被叫用的 SKILL.md」**：`${user_config.*}` 只在 skill／agent **被叫用時**代入其內容。本檔、`skills/exam-tutor/modes/*.md` 與其餘 `reference/` 檔案都是由 Read 工具讀入的**一般檔案**，寫在裡面的佔位符**不會被代入**，讀到字面未展開的 `${user_config.*}` 佔位符**不等於「使用者未設定」**，不可據以進入初次詢問流程。因此順序 1 的實際值一律回到叫用中的那份 SKILL.md 去看，本檔只定義規則。
 - **凡是會用到這三項設定的 user-invocable 指令，其 SKILL.md 都必須自帶「目前的 plugin 設定值」代入區塊**（`skills/抽考`、`掌握度`、`弱點複習`、`申論猜題`、`出考卷`、`猜題`、`懶人包`、`讀書計畫`、`備考設定` 已具備）。指令檔本身必定是被叫用的，代入必成立；只靠指令正文「請去讀某個 skill／模式檔」是取不到值的。**`/出考卷` 尤其不可省**——它以 `context: fork` 執行，既看不到主對話也無法提問，缺了這個區塊就只能落到 `config.json` 或預設等別。
+  > 本條與上一條由 CI 把關（`scripts/ci_check_repo.py` 之 `plugin-paths` 檢查）：正文提及 `user-config-spec.md`／`<data_dir>`／`config.json`／`progress.json` 的 `SKILL.md` 若缺代入區塊會 FAIL；`SKILL.md` 以外的檔案（模式檔等）出現 `${user_config.*}` 亦會 FAIL。
 - `data_dir` 因設有預設值（`~/.fire-safety-tutor`），**一律有值**，故不列入初次詢問；使用者要改就改 plugin 設定或 `config.json`。
 - **只有這三項走 userConfig。** `exam_date`、`weekly_hours`、`progress_reminder`、`created`／`updated`
   仍只存在 `config.json`——`exam_date` 需要「推算下一個六月第一個週六再請使用者確認」這種互動，

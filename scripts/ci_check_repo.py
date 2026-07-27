@@ -309,6 +309,50 @@ def check_user_config_refs() -> None:
                 f"此處會原樣顯示。請改寫成規則描述，實際值回到 SKILL.md 取。"
             )
 
+    # skills/ 底下的非 SKILL.md（模式檔、附屬說明）同樣是被 Read 讀入的，理由同上
+    for f in md_files(["skills"]):
+        if f.name == "SKILL.md":
+            continue
+        text = read(f)
+        for m in USER_CONFIG_REF.finditer(text):
+            line = text[: m.start()].count("\n") + 1
+            err(
+                f"{rel(f)}:{line} 在非 SKILL.md 檔使用 {m.group(0)}：代入只發生在**被叫用的** "
+                f"SKILL.md 內文，模式檔由 Read 讀入、佔位符會原樣顯示。"
+                f"請把代入區塊放到叫用此檔的指令 SKILL.md。"
+            )
+
+    check_user_config_injection(declared)
+
+
+# 指令檔末尾的代入區塊起始標記（見 reference/user-config-spec.md「設定解析順序」）
+INJECTION_BLOCK = "**目前的 plugin 設定值**"
+
+# 「這支 skill 會用到使用者設定」的跡象。只看代入區塊**之前**的正文，
+# 否則區塊自己提到 user-config-spec.md／<data_dir> 會讓判斷變成循環。
+SETTINGS_HINT = re.compile(r"user-config-spec\.md|<data_dir>|config\.json|progress\.json")
+
+
+def check_user_config_injection(declared: set[str]) -> None:
+    """會用到使用者設定的 SKILL.md 須自帶 ${user_config.*} 代入區塊（issue #59）。
+
+    代入只發生在「被叫用的那份 SKILL.md」；使用者實際叫用的是指令檔，
+    只在正文寫「去讀某個 skill／模式檔」是取不到 plugin 設定的。
+    `/出考卷` 尤其不可省——它以 context: fork 執行，取不到值也無法回頭詢問。
+    """
+    for f in sorted((ROOT / "skills").rglob("SKILL.md")):
+        text = read(f)
+        body = text.split(INJECTION_BLOCK, 1)[0]
+        if not SETTINGS_HINT.search(body):
+            continue  # 這支不碰使用者設定（如 exam-archive、對照表）
+        missing = sorted(k for k in declared if f"${{user_config.{k}}}" not in text)
+        if missing:
+            err(
+                f"{rel(f)} 會用到使用者設定卻缺少代入區塊，未取用：{missing}。"
+                f"請於檔末補上「{INJECTION_BLOCK}」區塊並列出全部 userConfig 鍵，"
+                f"否則「設定解析順序」的順序 1（plugin 設定）在此指令路徑上永遠取不到值。"
+            )
+
 
 # --------------------------------------------------------------------------
 # 6. 格式規範（CLAUDE.md 之機械可驗部分）
