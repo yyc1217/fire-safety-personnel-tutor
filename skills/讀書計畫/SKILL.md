@@ -9,3 +9,13 @@ allowed-tools:
   - Bash(jq *)
 ---
 使用 study-planner skill：先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 依其「設定解析順序」載入應考等別。config 尚無考試日期時**先確認考試日期**——主動推算預設值（消防設備人員考試原則上於每年六月的第一個週末舉行兩天，取下一個六月的第一個週六，以考選部公告為準）供使用者確認或修改。依該等別命題頻率由高至低編排單元（設置標準與檢修基準按設備切單元）後，**與使用者討論進度分配與計畫形式**（順序清單或逐週排程）再產出；進度以「是否逐步掌握各項消防安全設備的相關規定」衡量、不以每週時數為主，發現趕不上的跡象時主動提醒並提議重排（提醒方式依使用者喜好，見 `progress_reminder`）。已有本年度計畫檔時先報告進度再詢問接續方式。參數：$ARGUMENTS
+
+---
+
+**目前的 plugin 設定值**（Claude Code 於叫用本檔時代入；空白＝使用者未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+上列即「設定解析順序」之順序 1，且**本檔是它唯一的代入點**——模式檔與 `user-config-spec.md` 是用 Read 讀入的一般檔案，其中的 `${user_config.*}` 不會被代入，不可把那裡看到的佔位符當成「未設定」。非空即採用、**不得再問一次**；空白才往下讀 `<data_dir>/config.json`。

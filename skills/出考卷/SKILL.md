@@ -41,3 +41,13 @@ allowed-tools:
    非由 `$ARGUMENTS` 指定時，**於卷首一行說明選這科的理由**，並附一句「要指定科目請執行 `/出考卷 <科目>`」。
 
 科目：$ARGUMENTS
+
+---
+
+**目前的 plugin 設定值**（Claude Code 於叫用本檔時代入；空白＝使用者未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+上列即「設定解析順序」之順序 1，且**本檔是它唯一的代入點**——模式檔與 `user-config-spec.md` 是用 Read 讀入的一般檔案，其中的 `${user_config.*}` 不會被代入，不可把那裡看到的佔位符當成「未設定」。非空即採用、**不得再問一次**；空白才往下讀 `<data_dir>/config.json`。

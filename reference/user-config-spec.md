@@ -17,13 +17,14 @@
 
 | 順序 | 來源 | 取法 |
 |------|------|------|
-| 1 | **plugin 設定**（`plugin.json` 之 `userConfig`） | 值由 Claude Code 代入**各 SKILL.md 內文**，各 skill 的「使用者設定」節已列出代入後的實際值——**直接看叫用中的那份 SKILL.md，非空即採用，不再讀 config.json、不再詢問**。 |
+| 1 | **plugin 設定**（`plugin.json` 之 `userConfig`） | 值由 Claude Code **只在「被叫用的那份 SKILL.md」內文**代入，該檔末尾的「目前的 plugin 設定值」節即代入後的實際值——**直接看叫用中的那份 SKILL.md，非空即採用，不再讀 config.json、不再詢問**。 |
 | 2 | **`<data_dir>/config.json`** | 既有使用者（v0.10.0 以前建檔者）的設定都在這裡，須完整支援，**不得因改用 userConfig 而忽略**。 |
 | 3 | **初次詢問流程**（見下文） | 前兩者皆無值時才跑；問完寫入 `config.json`，並告知使用者「日後也可在 `/plugin` 的設定對話框修改」。 |
 
 補充規則：
 
-- **本檔看不到 plugin 設定值**：`${user_config.*}` 只在 **skill／agent 內容**中代入，本檔是由 Read 工具讀入的一般檔案，寫在這裡的佔位符不會被代入。因此順序 1 的實際值一律回到叫用中的 SKILL.md 去看，本檔只定義規則。
+- **代入只發生在「被叫用的 SKILL.md」**：`${user_config.*}` 只在 skill／agent **被叫用時**代入其內容。本檔、`skills/exam-tutor/modes/*.md` 與其餘 `reference/` 檔案都是由 Read 工具讀入的**一般檔案**，寫在裡面的佔位符**不會被代入**，讀到字面未展開的 `${user_config.*}` 佔位符**不等於「使用者未設定」**，不可據以進入初次詢問流程。因此順序 1 的實際值一律回到叫用中的那份 SKILL.md 去看，本檔只定義規則。
+- **凡是會用到這三項設定的 user-invocable 指令，其 SKILL.md 都必須自帶「目前的 plugin 設定值」代入區塊**（`skills/抽考`、`掌握度`、`弱點複習`、`申論猜題`、`出考卷`、`猜題`、`懶人包`、`讀書計畫`、`備考設定` 已具備）。指令檔本身必定是被叫用的，代入必成立；只靠指令正文「請去讀某個 skill／模式檔」是取不到值的。**`/出考卷` 尤其不可省**——它以 `context: fork` 執行，既看不到主對話也無法提問，缺了這個區塊就只能落到 `config.json` 或預設等別。
 - `data_dir` 因設有預設值（`~/.fire-safety-tutor`），**一律有值**，故不列入初次詢問；使用者要改就改 plugin 設定或 `config.json`。
 - **只有這三項走 userConfig。** `exam_date`、`weekly_hours`、`progress_reminder`、`created`／`updated`
   仍只存在 `config.json`——`exam_date` 需要「推算下一個六月第一個週六再請使用者確認」這種互動，

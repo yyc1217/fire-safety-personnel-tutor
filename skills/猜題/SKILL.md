@@ -17,3 +17,13 @@ allowed-tools:
 3. **第二段（使用者同意才執行）**：檢索官方來源三維度動態（修法與理由／函令與技術規範／重大時事），逐科併回「猜題依據」，頂端狀態改標「已含近 12–24 個月官方動態，資料截至 <YYYY-MM-DD>」（字串以 `reference/輸出格式/猜題報告格式.md` 為準）。
 
 報告尾僅指路後續功能（/申論猜題、/懶人包、/讀書計畫），不代為執行。範圍：$ARGUMENTS
+
+---
+
+**目前的 plugin 設定值**（Claude Code 於叫用本檔時代入；空白＝使用者未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+上列即「設定解析順序」之順序 1，且**本檔是它唯一的代入點**——模式檔與 `user-config-spec.md` 是用 Read 讀入的一般檔案，其中的 `${user_config.*}` 不會被代入，不可把那裡看到的佔位符當成「未設定」。非空即採用、**不得再問一次**；空白才往下讀 `<data_dir>/config.json`。
