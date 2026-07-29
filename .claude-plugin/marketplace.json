@@ -8,7 +8,24 @@
     {
       "name": "fire-safety-personnel-tutor",
       "source": "./",
-      "description": "消防設備師／士國家考試備考工具：考情趨勢預測與家教式出題批改。"
+      "description": "消防設備師／士國家考試備考工具：家教式出題批改、考前猜題、法規記憶對照、讀書計畫與題庫查詢。內含民國 100–115 年考古題題庫（160 卷、3680 題）與命題大綱法規現行全文。",
+      "author": {
+        "name": "yyc1217"
+      },
+      "homepage": "https://github.com/yyc1217/fire-safety-personnel-tutor",
+      "license": "MIT",
+      "category": "education",
+      "keywords": [
+        "消防設備師",
+        "消防設備士",
+        "國家考試",
+        "備考",
+        "考古題",
+        "消防法規",
+        "fire-safety",
+        "exam-prep",
+        "taiwan"
+      ]
     }
   ]
 }

@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-0.9.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.10.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -22,7 +22,7 @@
 | 指令 | 功能 | 範例 |
 |------|------|------|
 | `/抽考 [範圍?]` | 快速抽考一輪 3~5 題 | `/抽考 警報系統` |
-| `/出考卷 [科目?]` | 套用最新年度原卷版面（首尾標註【模擬考】）產出整卷仿真模擬試卷＋標準答案 | `/出考卷 消防法規` |
+| `/出考卷 [科目?]` | 套用最新年度原卷版面（首尾標註【模擬考】）產出整卷仿真模擬試卷＋標準答案。**在獨立子代理中執行**，命題過程不佔主對話脈絡 | `/出考卷 消防法規` |
 | `/弱點複習 [範圍?]` | 依作答紀錄優先重考常錯考點 | `/弱點複習` |
 | `/掌握度 [範圍?]` | 把本機作答紀錄畫成各主題／設備／法條的內容覆蓋度文字條地圖（掌握度＝已展現掌握之內容點 ÷ 相關內容總點數），一眼看出哪裡強、哪裡還沒碰 | `/掌握度 水系統` |
 | `/對照表 [主題?]` | 跨法規對照表；留空列出內建清單 | `/對照表 各設備緊急電源` |
@@ -47,7 +47,45 @@ claude plugin marketplace add https://github.com/yyc1217/fire-safety-personnel-t
 claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace
 ```
 
-初次使用任一功能時會詢問應考等別與弱點記錄模式（一次記住，`/備考設定` 可改）；學習進度存於使用者本機 `~/.fire-safety-tutor/`，plugin 目錄唯讀。
+安裝／啟用時 Claude Code 會跳出**設定對話框**，可直接填應考等別（師／士）、弱點記錄模式與學習資料目錄；**留空也沒關係**——初次使用任一功能時會詢問並記住（`/備考設定` 或 `/plugin` 設定對話框都可再改）。學習進度存於使用者本機 `~/.fire-safety-tutor/`（可改），plugin 目錄唯讀。
+
+> 📦 **安裝體積**：本 plugin **附完整原始資料**，工作樹約 **142 MB**（其中考古題原卷 PDF 37 MB、法規原始檔 55 MB），連同 git 歷史首次下載約 **265 MB**，請預留時間與磁碟空間。原始 PDF 是刻意入庫的——批改與查證時要能翻回官方原卷，不只看轉檔後的 md。
+
+### 前置需求
+
+| 工具 | 用途 | 缺少時 |
+|------|------|--------|
+| `jq` | 查標籤索引（`corpus/tags_index.json` 約 370 KB，只取單鍵不整檔載入） | 自動改以 `python3 -c` 讀取，較慢但功能不變 |
+| `pdftoppm`（poppler-utils） | 把原卷 PDF 指定頁轉圖以判讀圖形題 | 圖形題改以文字描述說明，並附原卷頁碼供自行開啟 |
+
+兩者皆為選配（macOS：`brew install jq poppler`；Debian／Ubuntu：`apt install jq poppler-utils`）。
+
+### 權限提示
+
+各 skill 已宣告 `allowed-tools`，但 Claude Code 的這項授權**只涵蓋「叫用指令的那一個對話回合」，你送出下一則訊息就失效**。所以 `/抽考`、`/弱點複習` 這種一題一答的多回合流程，**第二題起查索引、讀條文仍會再問一次**；`/掌握度`、`/出考卷` 這類單回合產出則不受影響。
+
+想讓唯讀查詢在整個 session 都不再詢問，請自行在 `~/.claude/settings.json` 加規則——**plugin 無法代為設定權限**，這是 Claude Code 的安全邊界：
+
+```json
+{
+  "permissions": {
+    "allow": ["Bash(jq *)", "Bash(pdftoppm *)"],
+    "additionalDirectories": [
+      "~/.fire-safety-tutor",
+      "~/.claude/plugins/cache/fire-safety-personnel-tutor-marketplace"
+    ]
+  }
+}
+```
+
+兩個欄位擋的是不同的東西，**兩個都要加**：
+
+- **`allow`** 管的是「這個指令可不可以跑」。`jq` 與 `pdftoppm` 不在 Claude Code 內建的唯讀指令清單裡，所以預設會問。`ls`／`cat`／`grep`／`wc`／`head` 這些屬內建唯讀清單，**不必列**。
+- **`additionalDirectories`** 管的是「可不可以碰這個目錄」。Claude Code 預設只信任你的工作目錄，而本 plugin 要查的**題庫、法條全文與索引都在 plugin 自己的安裝目錄底下**——這通常不是你的工作目錄，所以就算指令本身放行了，讀取仍會逐次詢問。**只加 `~/.fire-safety-tutor` 是不夠的**，那只涵蓋你的學習資料。
+  - plugin 安裝目錄的實際位置隨 Claude Code 版本與你的安裝來源而異，上例是從本 repo 的 marketplace 安裝時的路徑；不確定的話可用 `/plugin` 查看，或直接加上層的 `~/.claude/plugins/cache`。
+  - 這一行只讓**讀取**免詢問，不會讓寫入變成免詢問。
+
+**寫入使用者資料一律逐次徵詢同意**：`Write`／`Edit` 刻意不列入任何 skill 的 `allowed-tools`，也**不建議**你把它們加進 allow 規則——你的作答紀錄與讀書計畫每次被改動時都該讓你看到。
 
 > ⏳ **關於等待時間**：`/猜題` 採兩段式——第一段本地統計結果**很快就好**；之後詢問是否上網彙整近 12–24 個月官方修法／函令／時事，**同意才執行**、約需 5–8 分鐘。`/申論猜題` 與整卷 `/出考卷` 屬重工作（自行命題並附解答），**約需 5–8 分鐘（實際視你的使用設定與網路環境而定）**，過程不是卡住，請耐心稍候。其餘快節奏功能（`/抽考`、`/對照表` 等）則很快。
 
@@ -58,12 +96,14 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
 ├── statutes/                # 命題大綱法規現行全文 md
 ├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格、輸出格式範本
-├── skills/                  # 五個功能 skill＋九個 slash command skill（各為 <名稱>/SKILL.md）
+├── skills/                  # 五個功能 skill＋十個 slash command skill（各為 <名稱>/SKILL.md）
+│   └── exam-tutor/modes/    # exam-tutor 的六個互斥模式（按需載入，見 SKILL.md 模式路由）
 ├── scripts/                 # 維護者工具（見 scripts/README.md）
-└── docs/                    # 設計筆記、資料維護說明、待辦與變更紀錄（入口：docs/index.md）
+├── docs/                    # 設計筆記、資料維護說明、待辦（入口：docs/index.md）
+└── CHANGELOG.md             # 版本紀錄、資料工作、決策紀錄與里程碑（唯一變更紀錄）
 ```
 
-題庫與法規之維護細節（標籤索引流程、新年度試卷納入、法規整理規範）見 [`docs/資料維護.md`](docs/資料維護.md)；設計筆記、待辦與變更紀錄之總覽見 [`docs/index.md`](docs/index.md)。
+題庫與法規之維護細節（標籤索引流程、新年度試卷納入、法規整理規範）見 [`docs/資料維護.md`](docs/資料維護.md)；設計筆記與待辦之總覽見 [`docs/index.md`](docs/index.md)；歷次變更、決策紀錄與里程碑見 [`CHANGELOG.md`](CHANGELOG.md)。
 
 ## 設計原則
 
@@ -74,4 +114,14 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 
 ## License
 
-見 [LICENSE](LICENSE)。考古題為考選部公開資料；法條為公開法令。
+**程式碼與整理成果** —— skill 定義、腳本、索引、對照表、輸出格式範本、各法規之 markdown 轉寫與標註：MIT，見 [LICENSE](LICENSE)。
+
+**原始資料不在 MIT 授權標的之內**，各依原出處條款：
+
+| 資料 | 來源 | 條款 |
+|------|------|------|
+| `corpus/pdf/` 歷屆試題與答案卷 | 考選部 | 政府公開資訊，依考選部網站使用規定 |
+| `docs/命題大綱/` 命題大綱 | 考選部 | 同上 |
+| `statutes/原始檔案/` 法規原文（PDF／DOC／ODT） | 全國法規資料庫、內政部消防署 | 法規原文不受著作權法保護（著作權法第 9 條） |
+
+引用法條前請依主管機關公告之**現行版本**核對；本 repo 之 md 為整理當下的版本快照，各檔檔首附「📌 免責聲明」與版本日期。

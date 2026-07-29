@@ -1,0 +1,51 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  repo-checks:
+    name: repo 完整性與格式檢查
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 安裝檢查相依
+        run: pip install pyyaml
+
+      - name: 檢查 manifest／skill／索引／連結／格式規範
+        run: python3 scripts/ci_check_repo.py
+
+      - name: 法規版本時效比對（過期時失敗）
+        run: python3 scripts/check_statute_versions.py --stale-only
+
+  plugin-validate:
+    name: claude plugin validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: 安裝 Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      # 官方 schema 驗證。--strict 把警告視為錯誤，可攔下拼錯的欄位名與
+      # 「plugin 根目錄放 CLAUDE.md」這類結構問題（本 repo 因此改置 .claude/CLAUDE.md）。
+      # 兩個 manifest 需分別指定：路徑給資料夾時只會驗 marketplace.json。
+      # 註：CLI 為每次 CI 安裝最新版，若上游新增警告可能使此步驟轉紅；
+      #     屆時看是要修正 repo，或暫時對本步驟加 continue-on-error。
+      - name: 驗證 plugin manifest
+        run: claude plugin validate .claude-plugin/plugin.json --strict
+
+      - name: 驗證 marketplace manifest
+        run: claude plugin validate . --strict

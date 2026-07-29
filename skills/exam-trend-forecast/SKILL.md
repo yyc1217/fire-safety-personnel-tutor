@@ -1,6 +1,13 @@
 ---
 name: exam-trend-forecast
 description: 消防設備師／士考試的考情分析與年度命題趨勢預測。當使用者問「今年可能考什麼」「命題趨勢」「重點方向」「法規脈動」「猜題」時使用。**只負責猜題**：產出「猜題範圍」（考點＋依據＋週期型態，強弱由依據措辭表達）。出題練習與申論擬答是 exam-tutor、必背懶人包是 statute-memorizer、排入讀書計畫是 study-planner——報告尾指路即可，不代為執行。
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
+  - WebSearch
+  - WebFetch
 ---
 
 # 考情分析與命題趨勢預測（exam-trend-forecast）
@@ -11,7 +18,15 @@ description: 消防設備師／士考試的考情分析與年度命題趨勢預�
 
 ## 使用者設定（應考等別）
 
-首次執行先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入使用者設定（無設定檔則先跑初次詢問流程）。`level` 影響猜題範圍與比重：
+**目前的 plugin 設定值**（由 Claude Code 代入；空白＝使用者尚未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+取值依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「**設定解析順序**」：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
+
+`level` 影響猜題範圍與比重：
 
 - **師**：6 科。火災學、水系統、化學系統、警報系統、避難系統為**全申論**；**消防法規為申論 2 題＋測驗 40 題（混合）**。故師的猜題除各科申論考點外，**消防法規科**須另附「測驗高頻數字」。
 - **士**：4 科（火災學概要、消防法規概要、警報系統與避難系統概要、水系統與化學系統概要），**皆為申論 2 題＋測驗 40 題混合**——每科都須附「測驗高頻數字」。
@@ -139,6 +154,7 @@ description: 消防設備師／士考試的考情分析與年度命題趨勢預�
 | 情況 | 處理 |
 |------|------|
 | `corpus/index.json` 不存在或 `papers` 為空 | 無法產第一段統計結果；經使用者同意後僅依即時搜尋的近期動態產出預測，並明確標注此限制 |
+| **`jq` 未安裝**（`command not found`） | 不中止：改以 `python3 -c "import json;d=json.load(open('corpus/tags_cycles.json'));print(json.dumps(d[<鍵>],ensure_ascii=False))"` 取單鍵，**維持「只取所需單鍵、勿整檔輸出」**的鐵則 |
 | 無網路 | 第二段（近期動態）無法執行；以第一段「統計結果」為最終輸出，明示「本次未含近期動態」並標注資料截至日期 |
 | 有網路但單一官方來源不可達（如消防署站點憑證問題） | 改用 `docs/法規版本追蹤.md` 第二節之替代來源（主管法規共用系統、行政院公報）續查；全部不可達視同無網路 |
 | 本地快照**已知過期**且官方現行版不可達 | **不撤下該考點、也不靜默照登**：照列該考點，但於該考點顯著標注「本條文快照版本 {本地版本日期}、官方已於 {官方修正日期} 修正，內容可能已變動，請自行核對官方現行版」（版本資訊取自該檔檔首警示或 `docs/法規版本追蹤.md`） |

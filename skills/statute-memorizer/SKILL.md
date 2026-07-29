@@ -1,6 +1,11 @@
 ---
 name: statute-memorizer
 description: 消防設備師／士法規記憶助手：整理易混淆的數字、時限、面積、罰則成記憶重點（記憶卡、口訣）、製作跨法規對照表，以及考前必背懶人包。當使用者說「幫我整理」「記憶重點」「做記憶卡」「口訣」「對照表」「比較各法規的…」「這些數字怎麼記」「懶人包」時使用。出題批改請用 exam-tutor；命題趨勢請用 exam-trend-forecast。
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
 ---
 
 # 法規記憶助手（statute-memorizer）
@@ -22,6 +27,14 @@ description: 消防設備師／士法規記憶助手：整理易混淆的數字�
 | 使用者設定 | 依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` | 等別影響取材範圍；筆記保存位置 |
 
 路徑一律以 `${CLAUDE_PLUGIN_ROOT}` 解析；對 plugin 目錄一律**唯讀**，產出只寫入使用者 `data_dir`。
+
+**目前的 plugin 設定值**（由 Claude Code 代入；空白＝使用者尚未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+取值依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「**設定解析順序**」：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
 
 ## 工作流程
 
@@ -68,6 +81,7 @@ description: 消防設備師／士法規記憶助手：整理易混淆的數字�
 | 情況 | 處理 |
 |------|------|
 | `reference/對照表/` 不存在 | 全部改即時生成並說明 |
+| **`jq` 未安裝**（`command not found`） | 不中止：改以 `python3 -c "import json;d=json.load(open('corpus/tags_summary.json'));print(json.dumps(d[<鍵>],ensure_ascii=False))"` 取單鍵 |
 | 目錄存在但該主題**無對應內建表**（常態） | 懶人包來源 (3) 略過：必背內容改自 statutes 即時擷取，狀態列標「無對應內建對照表」、不列 `出處：` 欄；`/對照表` 則走「即時生成」路徑（§1.2） |
 | statutes 缺相關法規且網路抓不到 | 明示缺漏範圍，僅整理可查證部分 |
 | 無網路 | 照常整理，標注「未經線上核對，以本地版本日期為準」 |

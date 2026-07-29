@@ -1,6 +1,11 @@
 ---
 name: study-planner
 description: 消防設備師／士讀書計畫：以消防安全設備為主體、按師/士命題頻率主動規劃研讀順序（設置標準、檢修基準、公危管理及其他法規），產出可勾銷的順序清單或逐週排程，並追蹤進度。當使用者說「讀書計畫」「幫我排計畫」「怎麼準備」「接下來讀什麼」「進度到哪」時使用。出題批改請用 exam-tutor；記憶整理請用 statute-memorizer。
+allowed-tools:
+  - Read
+  - Glob
+  - Grep
+  - Bash(jq *)
 ---
 
 # 讀書計畫（study-planner）
@@ -27,7 +32,15 @@ description: 消防設備師／士讀書計畫：以消防安全設備為主體�
 
 ### 1. 載入設定與考試日期
 
-依 `user-config-spec.md` 載入 `config.json`（無則先跑初次詢問）。
+**目前的 plugin 設定值**（由 Claude Code 代入；空白＝使用者尚未設定）：
+
+- 應考等別 `level`：`${user_config.level}`
+- 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
+- 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+
+取值依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「**設定解析順序**」：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
+
+`exam_date`、`weekly_hours`、`progress_reminder` 不走 plugin 設定，一律讀寫 `<data_dir>/config.json`。
 
 **考試日期（`exam_date`）——初次使用本 skill 時必先確認**：config 尚無 `exam_date` 時，先向使用者確認下一次考試日期。確認方式：**主動推算並提出預設值**——消防設備人員考試**原則上於每年六月的第一個週末舉行（週六、週日兩天）**，故預設取「下一個六月的第一個週六」（今日已過當年考期則取次年），以民國日期呈現請使用者確認或改為考選部公告之實際日期。確認後記入 config，之後不再重複詢問。
 
@@ -76,6 +89,7 @@ description: 消防設備師／士讀書計畫：以消防安全設備為主體�
 | 情況 | 處理 |
 |------|------|
 | `tags_summary.json` 不存在 | 退化為讀 `corpus/命題頻率分析.md` 粗估排序，標注「頻率為粗估」 |
+| **`jq` 未安裝**（`command not found`） | 不中止：改以 `python3 -c "import json;d=json.load(open('corpus/tags_summary.json'));print(json.dumps(d[<鍵>],ensure_ascii=False))"` 取單鍵 |
 | 無 `progress.json` | 照常產出計畫（全部未完成起步） |
 | 使用者不確定考試日期 | 以推算之預設值（下一個六月的第一個週末）暫排，標注「以考選部公告為準」，不重複催問 |
 | 使用者不要存檔 | 對話中呈現，不寫檔 |
