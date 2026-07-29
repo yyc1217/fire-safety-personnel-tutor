@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-0.10.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.11.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -87,6 +87,8 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 
 **寫入使用者資料一律逐次徵詢同意**：`Write`／`Edit` 刻意不列入任何 skill 的 `allowed-tools`，也**不建議**你把它們加進 allow 規則——你的作答紀錄與讀書計畫每次被改動時都該讓你看到。
 
+> 自 0.11.0 起，弱點記錄模式為 `auto` 時改成**逐題落地**（出題時留斷點、每題批改完寫成績），所以練習過程中的寫入提示會比以前密集——這是為了讓對話中斷後接得回來。**按了「否」不會影響上課**，但該題就不會進進度檔，Claude 會當場告訴你這件事。
+
 > ⏳ **關於等待時間**：`/猜題` 採兩段式——第一段本地統計結果**很快就好**；之後詢問是否上網彙整近 12–24 個月官方修法／函令／時事，**同意才執行**、約需 5–8 分鐘。`/申論猜題` 與整卷 `/出考卷` 屬重工作（自行命題並附解答），**約需 5–8 分鐘（實際視你的使用設定與網路環境而定）**，過程不是卡住，請耐心稍候。其餘快節奏功能（`/抽考`、`/對照表` 等）則很快。
 
 ## 目錄結構
@@ -111,6 +113,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 - **先問、後等、再解**：使用者作答前不給答案。
 - **誠實性**：出題前自我驗證、答案須在法規中找得到；猜題附依據（強弱由措辭表達），不呈現假確定；擬答每一論點附法源。
 - **優雅退場**：資料缺漏或無網路時降級運作並說明，不可杜撰條文。
+- **跨對話續作**：出題後即在進度檔留下未批改斷點，關掉視窗、換一個對話都接得回來（`auto` 模式）；斷點只存題目，不存答案。
 
 ## License
 
