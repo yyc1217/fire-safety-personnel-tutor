@@ -64,18 +64,26 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 
 各 skill 已宣告 `allowed-tools`，但 Claude Code 的這項授權**只涵蓋「叫用指令的那一個對話回合」，你送出下一則訊息就失效**。所以 `/抽考`、`/弱點複習` 這種一題一答的多回合流程，**第二題起查索引、讀條文仍會再問一次**；`/掌握度`、`/出考卷` 這類單回合產出則不受影響。
 
-想讓唯讀查詢在整個 session 都不再詢問，請自行在 `~/.claude/settings.json` 加 allow 規則——**plugin 無法代為設定權限**，這是 Claude Code 的安全邊界：
+想讓唯讀查詢在整個 session 都不再詢問，請自行在 `~/.claude/settings.json` 加規則——**plugin 無法代為設定權限**，這是 Claude Code 的安全邊界：
 
 ```json
 {
   "permissions": {
     "allow": ["Bash(jq *)", "Bash(pdftoppm *)"],
-    "additionalDirectories": ["~/.fire-safety-tutor"]
+    "additionalDirectories": [
+      "~/.fire-safety-tutor",
+      "~/.claude/plugins/cache/fire-safety-personnel-tutor-marketplace"
+    ]
   }
 }
 ```
 
-`jq` 與 `pdftoppm` 不在 Claude Code 內建的唯讀指令清單裡，所以預設會問；`additionalDirectories` 則讓**讀取**你的學習資料目錄不再跳提示（只加這一行不會讓寫入變成免詢問）。
+兩個欄位擋的是不同的東西，**兩個都要加**：
+
+- **`allow`** 管的是「這個指令可不可以跑」。`jq` 與 `pdftoppm` 不在 Claude Code 內建的唯讀指令清單裡，所以預設會問。`ls`／`cat`／`grep`／`wc`／`head` 這些屬內建唯讀清單，**不必列**。
+- **`additionalDirectories`** 管的是「可不可以碰這個目錄」。Claude Code 預設只信任你的工作目錄，而本 plugin 要查的**題庫、法條全文與索引都在 plugin 自己的安裝目錄底下**——這通常不是你的工作目錄，所以就算指令本身放行了，讀取仍會逐次詢問。**只加 `~/.fire-safety-tutor` 是不夠的**，那只涵蓋你的學習資料。
+  - plugin 安裝目錄的實際位置隨 Claude Code 版本與你的安裝來源而異，上例是從本 repo 的 marketplace 安裝時的路徑；不確定的話可用 `/plugin` 查看，或直接加上層的 `~/.claude/plugins/cache`。
+  - 這一行只讓**讀取**免詢問，不會讓寫入變成免詢問。
 
 **寫入使用者資料一律逐次徵詢同意**：`Write`／`Edit` 刻意不列入任何 skill 的 `allowed-tools`，也**不建議**你把它們加進 allow 規則——你的作答紀錄與讀書計畫每次被改動時都該讓你看到。
 

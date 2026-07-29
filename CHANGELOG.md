@@ -60,6 +60,7 @@
 - **README 更正 `allowed-tools` 的效力範圍**（issue #59）：原本寫「這些唯讀查詢不會反覆跳權限提示」與事實不符。`allowed-tools` 的授權**只涵蓋叫用該指令的那一個對話回合，使用者送出下一則訊息即失效**，故 `/抽考`、`/弱點複習` 這類一題一答的多回合流程，第二題起仍會再次詢問（`/掌握度`、`/出考卷` 等單回合產出不受影響）。
   - **plugin 無法代為設定權限**（Claude Code 的安全邊界，plugin.json 無此欄位、plugin 提供的 agent 亦不得指定 `permissionMode`），因此改為在 README 新增「權限提示」節，提供使用者自行加在 `~/.claude/settings.json` 的 allow 規則範例（`Bash(jq *)`、`Bash(pdftoppm *)` 與 `permissions.additionalDirectories`）。
   - 維持 `Write`／`Edit` 不預先授權的設計，並於 README 明白建議使用者**不要**把它們加進 allow 規則——寫入學習資料每次都該讓使用者看到。
+  - **範例規則補上 plugin 安裝目錄**（issue #59 測項 D-1② 實測不通過）：原範例的 `additionalDirectories` 只列 `~/.fire-safety-tutor`，照著設定後 `/抽考` 仍有數次詢問。實測釐清兩個欄位管的是不同的事——`allow` 管「指令可不可以跑」，`additionalDirectories` 管「可不可以碰這個目錄」，而**題庫、法條全文與索引都在 plugin 自己的安裝目錄底下**，通常不是使用者的工作目錄，所以指令放行了、讀取仍會逐次詢問。以拆變因驗證：只給 `Bash(grep *)` 等指令規則 → 仍全數詢問；只給 plugin 目錄的 `additionalDirectories`（不給任何指令規則）→ 完全不詢問。範例改為同時列出學習資料目錄與 plugin 安裝目錄，並註明 `ls`／`cat`／`grep`／`wc`／`head` 屬 Claude Code 內建唯讀清單、不必列入 `allow`（`jq`／`pdftoppm` 才需要）。
 
 ## [0.9.0] - 2026-07-22 — 考點重考率×顆粒度分析
 
