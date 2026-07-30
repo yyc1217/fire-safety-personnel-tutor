@@ -46,8 +46,10 @@ allowed-tools:
    python3 "${CLAUDE_PLUGIN_ROOT}/skills/spaced-repetition/cli.py" --data-dir <data_dir> due --limit 5
    ```
 
-   `due` 已**依 `ease_factor` 由低到高**排序（最弱的先複習）並附 `citation`、上次結果、逾期天數，
-   直接依其輸出向使用者報告本輪清單（版面比照 `due` 的輸出，不必另行改寫）。
+   `due` 已**依 `ease_factor` 由低到高**排序（最弱的先複習）並附 `citation`、上次結果、逾期天數；
+   **呈現給使用者的版面依 `${CLAUDE_PLUGIN_ROOT}/reference/輸出格式/複習排程輸出格式.md`**
+   （該檔為本 skill 輸出的格式唯一真相，含完整範例）——排序照 `due` 的順序，但
+   **`item_id` 與 `ease_factor` 數值是內部代碼，不呈現給使用者**（與批改輸出的通用規則一致）。
    使用者指定範圍時加 `--category`（取值見規格檔），要看未來幾天用 `upcoming --days N`。
 3. **逐項複習**（一次一項，受「先問、後等、再解」約束）：
    - 以 `item_id` 之 tag key（`#` 前一段）用 jq 對 `corpus/tags_index.json` **取單鍵**反查考古題，
@@ -65,11 +67,13 @@ allowed-tools:
    對映規則見 `reference/複習排程規格.md`「批改結果 → 品質分數」：申論用 `--essay <得分>/<滿分>`、
    選擇與口頭問答用 `--result correct|wrong`＋`--hinted`／`--unsure`／`--partial`／`--blank`，
    已自行判定時用 `--quality 0-5`。**判定寧可給低不給高。**
-   `record` 的輸出（ease 與間隔怎麼變、下次何時複習）**要轉述給使用者**——看得到間隔在長，才有回饋感。
+   `record` 的輸出（間隔怎麼變、下次何時複習）**要轉述給使用者**——看得到間隔在長，才有回饋感；
+   版面為批改講解後的 `🔁 下次複習` 一行，依 `reference/輸出格式/複習排程輸出格式.md`。
 5. **同步 exam-tutor 的紀錄**：`weakness_tracking = "auto"` 時，本輪的作答仍依 exam-tutor
    「解答與批改」寫入 `progress.json` 之 `attempts`／`weak_tally`／`coverage`（排程檔不取代它）。
 6. **收尾**：報告本輪答對數、哪些項目間隔變長、哪些被打回 1 天，並跑一次 `stats`
-   說明整體（總項目、逾期數、最弱五項）。詢問要不要再一輪／換範圍／結束。
+   說明整體（總項目、逾期數、最弱五項）；版面依 `reference/輸出格式/複習排程輸出格式.md`
+   之「輪末總結」（統計數字取自 `stats`，不自行推算）。詢問要不要再一輪／換範圍／結束。
 
 ## 項目從哪來（排程不會自己長出項目）
 

@@ -12,7 +12,7 @@ allowed-tools:
 ---
 使用 spaced-repetition skill——**先讀 `${CLAUDE_PLUGIN_ROOT}/skills/spaced-repetition/SKILL.md`**（該 skill 為本流程規範唯一真相），再依其執行：先依「設定解析順序」載入使用者設定（下列 plugin 設定 → `<data_dir>/config.json` → 初次詢問），跑 `cli.py init` 後以 `cli.py due` 取今日到期項目（已依 `ease_factor` 由低到高排序、附法規依據），逐項出題複習，批改後以 `cli.py record` 算回排程。範圍：$ARGUMENTS
 
-出題、批改與引用條文的規範照 exam-tutor（含「先問、後等、再解」）；`weakness_tracking = "none"` 時不寫任何檔，改用試算並說明。**`reference/複習排程規格.md` 不在開場 Read**——需要精確的品質分數對映、`item_id` 命名或退場處置時才讀。
+呈現版面依 `${CLAUDE_PLUGIN_ROOT}/reference/輸出格式/複習排程輸出格式.md`（到期清單、每項答完的 `🔁 下次複習` 回饋、輪末排程總結；**不露 `item_id` 與 ease 數值**）；出題、批改與引用條文的規範照 exam-tutor（含「先問、後等、再解」）；`weakness_tracking = "none"` 時不寫任何檔，改用試算並說明。**`reference/複習排程規格.md` 不在開場 Read**——需要精確的品質分數對映、`item_id` 命名或退場處置時才讀。
 
 ---
 
