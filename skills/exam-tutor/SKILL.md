@@ -7,6 +7,7 @@ allowed-tools:
   - Grep
   - Bash(jq *)
   - Bash(pdftoppm *)
+  - Bash(python3 "${CLAUDE_PLUGIN_ROOT}/skills/spaced-repetition/cli.py"*)
   - WebSearch
   - WebFetch
 ---
@@ -27,6 +28,7 @@ allowed-tools:
 | 設備清單 | `${CLAUDE_PLUGIN_ROOT}/corpus/equipment_index.md` | 單一設備連續提問的單元邊界與頻率統計對照 |
 | **設備條文索引** | `${CLAUDE_PLUGIN_ROOT}/reference/索引/設備條文索引.md` | **連續出題的課綱地圖**：每個設備對應的全部條文（法源／條文／場所／項目），「項目」欄＝條文目的，供整合性出題與覆蓋進度追蹤 |
 | 使用者設定與進度 | `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md`（規格）；資料存使用者 `data_dir` | 等別（師/士）、弱點記錄模式、作答紀錄、各設備條文覆蓋進度 |
+| **複習排程** | `${CLAUDE_PLUGIN_ROOT}/skills/spaced-repetition/cli.py`（程式）／`${CLAUDE_PLUGIN_ROOT}/reference/複習排程規格.md`（規格）；排程存 `<data_dir>/review_schedule.db` | **批改後把該考點的下次複習時機算回排程**（見「解答與批改」第 6 點）；帶著使用者複習到期項目是 `spaced-repetition` skill／`/複習排程` 的事 |
 | 法條全文 | `${CLAUDE_PLUGIN_ROOT}/statutes/`（入口：`statutes/index.md`） | 批改與講解時引用條文全文 |
 | **消防圖說圖例** | `statutes/原始檔案/消防機關辦理建築物消防安全設備審查及查驗作業基準/附件三：消防圖說圖示範例.md`（17 類 284 個圖例；圖檔在同層 `附件三_圖例/`，機器索引 `附件三_圖例_index.json` 可用 jq 抽題） | **識圖題**出題來源（不在命題大綱明列，但為考題來源）：看圖答名、依名選圖（以同類別相似圖例作干擾選項）、加註規則（藥劑、等級、W 數、住警器 R） |
 | 重大事故時事 | 即時 web 搜尋 | 查過去一年臺灣消防安全相關重大事故，**只整理、理解、內化為出題靈感，不下載** |
@@ -108,6 +110,19 @@ allowed-tools:
    - **設備題**：涵蓋某設備之條文 → 加入 `coverage["<設備>"].done`（既有格式，分母＝`reference/索引/設備條文索引.md` 該設備條文＋延伸知識，可不存 `total`）。
    - **key 與 `done` 命名須穩定**（跨次批改才對得上、去重才有效）：`by_article:` 之條號短名**對齊 `corpus/tags_index.json` 維度**——增訂條文用「第 N 條之 M」（如 `by_article:設置標準第111條之1`，**不用** `111-1`；`reference/索引/法規條文清單索引.md` 之條號 `N-M` 即「第 N 條之 M」）；檢修基準以章為單位，key＝`by_article:檢修基準第X章`（中文數字，與清單索引一致）。`done` 之要點／知識點名稱：火災學取知識點索引該條目之**開頭關鍵語**、法條要點沿用該條首次切分時所定短名——同一內容點一律沿用既有字串，不得換寫法。
    - **申論題**：判定「已掌握」以**擬答內容**對照該內容點之學理／法規要旨，非僅結論正確。**選擇題**：無擬答可對照，**答對即把該題所考之內容點**（依題目 tags 與所涉條文判定，通常 1 點）**計入 `done`**，讓 `/抽考` 等測驗練習也能累積覆蓋度。同一內容點重複掌握不重複計入（`done` 去重）。答錯或未涵蓋則不加入（維持該點 0%）。
+6. **記錄複習排程（`weakness_tracking = "auto"` 時，緊接第 5 點之後做）**：把本題所考考點的**下次複習時機**算進 `<data_dir>/review_schedule.db`，供 `/複習排程` 依遺忘曲線把它排回來。每個考點一次呼叫（一題涉數個考點就數次），`item_id` **直接用第 5 點的 `coverage` key**（`by_article:設置標準第31條`、`by_equipment:滅火器`、`by_topic:燃燒理論`；細到單一要點時加 `#<要點名>`，要點名沿用 `points` 既存字串）——**不得自創新 ID**，否則排程與弱點、覆蓋度就對不起來：
+
+   ```
+   python3 "${CLAUDE_PLUGIN_ROOT}/skills/spaced-repetition/cli.py" --data-dir <data_dir> \
+       record "by_article:設置標準第31條" --essay 18/25 \
+       --title "滅火器設置規定" --category "化學系統" \
+       --citation "各類場所消防安全設備設置標準 §31" --q-id "師/113/0806#3"
+   ```
+
+   - **品質分數**：申論用 `--essay <得分>/<滿分>`（依本節第 2 點的實際配分）；選擇題與口頭問答用 `--result correct|wrong`，並依情形加 `--hinted`（經提示才答對）／`--unsure`（答對但自陳不確定）／`--partial`（答錯但方向對）／`--blank`（未作答）。對映表與判定原則見 `${CLAUDE_PLUGIN_ROOT}/reference/複習排程規格.md`（**只在需要精確對映時才讀**，上列旗標已足以應付一般批改）。
+   - **答錯照樣要記**：答錯是間隔重複最重要的訊號（`repetitions` 歸零、明天再考）。第 5 點的 `coverage` 只在答對時累積，兩者不同，不可因為「這題沒掌握、不寫 coverage」就跳過本點。
+   - **輪末順帶回報**：一輪結束時可一句話提到「其中 N 項已排入複習排程，最近的 X 天後到期」，讓使用者知道排程在動；細節留給 `/複習排程`。
+   - `weakness_tracking` 為 `notes`／`none`，或 `python3` 不可用、寫入失敗時：**照常完成講解**，依 `reference/複習排程規格.md`「與 `weakness_tracking` 的關係」與「優雅退場」處置，不得靜默略過也不得由模型心算間隔。
 
 ## 模式路由（進入前必先讀對應模式檔）
 
@@ -128,6 +143,11 @@ allowed-tools:
 學習進度與優雅退場為**全模式共用**，各模式檔只補該模式特有規範；
 「先問、後等、再解」僅規範**出題類**模式（連續出題、快速抽考、弱點複習），
 掌握度／申論擬答／整卷模擬考／系統複習不適用，各模式檔已個別載明。
+
+**不屬本 skill 的模式**：使用者說「今天要複習什麼」「有哪些該複習了」「間隔重複」或執行 `/複習排程`
+時，改用 `spaced-repetition` skill（`${CLAUDE_PLUGIN_ROOT}/skills/spaced-repetition/SKILL.md`）——
+它依 `next_review`（該不該再看了）選題，本 skill 的弱點複習模式依 `weak_tally`（錯幾次）選題。
+兩者的出題與批改規範同樣照本檔，故無論由誰主導，第 5、6 點的紀錄都照常寫。
 
 ## 條號要旨護欄（全模式適用）
 

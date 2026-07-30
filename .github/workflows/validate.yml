@@ -18,10 +18,15 @@ jobs:
           python-version: "3.12"
 
       - name: 安裝檢查相依
-        run: pip install pyyaml
+        run: pip install pyyaml pytest
 
       - name: 檢查 manifest／skill／索引／連結／格式規範
         run: python3 scripts/ci_check_repo.py
+
+      # 排程演算法（skills/spaced-repetition/）的單元測試。受測程式只用標準
+      # 函式庫，這裡裝 pytest 純粹是為了跑測試。
+      - name: 單元測試（複習排程演算法與儲存層）
+        run: python3 -m pytest tests/ -q
 
       - name: 法規版本時效比對（過期時失敗）
         run: python3 scripts/check_statute_versions.py --stale-only

@@ -11,6 +11,9 @@
 # PDF 解析：check_option_order.py（原卷文字流比對）、extract_figures.py（裁切圖形題附圖）
 PyMuPDF>=1.24
 
+# 單元測試：tests/（排程演算法與儲存層；受測程式本身只用標準函式庫）
+pytest>=8.0
+
 # 影像處理：extract_legend_symbols.py（圖例切割與去白邊）
 Pillow>=10.0
 numpy>=1.26

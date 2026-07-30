@@ -39,6 +39,7 @@
 ~/.fire-safety-tutor/           ← 預設 data_dir（使用者可改）
 ├── config.json                 ← 使用者設定
 ├── progress.json               ← 作答與弱點紀錄（weakness_tracking = "auto" 才建立）
+├── review_schedule.db          ← 間隔重複複習排程（SQLite，spaced-repetition／/複習排程）
 ├── notes/                      ← 複習筆記庫（記憶重點、對照表、弱點筆記等，使用者選擇存檔時）
 ├── plans/                      ← 讀書計畫（study-planner）
 └── forecasts/                  ← 猜題產物（趨勢報告、懶人包、申論擬答）
@@ -64,6 +65,15 @@
 | `exam_date` | `YYYY-MM-DD`（西元 ISO） | 目標考試日期。**儲存時一律轉為西元 ISO 格式**；使用者以民國格式輸入（如 `116-06-05`）時先換算再記入，避免紀年歧義。**初次使用 study-planner 時必先確認**：無此值時主動推算預設——消防設備人員考試**原則上於每年六月的第一個週末舉行（週六、週日兩天）**，取「下一個六月的第一個週六」供使用者確認或改為考選部公告日期；確認後記入，不再重複詢問。 |
 | `weekly_hours` | 選填，數字 | 每週可用讀書時數。**不主動詢問**——進度以「各設備單元規定是否逐步掌握」衡量，不以時數為主；使用者主動提供時記入，僅供排程參考。 |
 | `progress_reminder` | 選填，`"auto"`（預設）／`"off"` | 讀書進度有趕不上跡象時是否主動提醒（study-planner）：`auto` 主動提醒並提議重排；`off` 僅在使用者詢問進度時說明。使用者表明偏好時記入。 |
+| `review_scheduling` | 選填，`"on"`／`"off"` | 是否建立間隔重複排程檔 `review_schedule.db`。**只在 `weakness_tracking = "notes"` 時有意義**（`auto` 恆為 on、`none` 恆為 off，不需存）：`notes` 模式首次使用 `/複習排程` 時問一次「要不要建排程檔（只存複習日期與係數，不存作答內容）」，答案記入本欄，不再重複詢問。詳見 `複習排程規格.md`。 |
+
+## review_schedule.db（間隔重複複習排程）
+
+`spaced-repetition` skill（`/複習排程`）的排程檔：每個知識點存記憶強度（`ease_factor`）與下次
+複習日（`next_review`），**以 `item_id`＝本檔 `weak_tally`／`coverage` 的同一套 key 對齊**。
+分工是「`progress.json` 管答了什麼、掌握多少；`review_schedule.db` 只管什麼時候該再看一次」，
+內容不重複存。**schema、`item_id` 命名、品質分數對映與各 `weakness_tracking` 模式下的行為
+一律見 [`複習排程規格.md`](複習排程規格.md)（該檔為排程的唯一真相），本檔不重複定義。**
 
 ## progress.json（weakness_tracking = "auto"）
 

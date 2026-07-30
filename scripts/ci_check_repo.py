@@ -129,6 +129,28 @@ def parse_frontmatter(text: str) -> dict | None:
         return None
 
 
+_ZH_DIGITS = "零一二三四五六七八九"
+
+
+def zh_num(n: int) -> str:
+    """阿拉伯數字轉中文數字（0–99），供比對 README 之 skill 數量敘述。
+
+    README 一律寫中文數字（「十一個 slash command skill」），故 11 以上也要
+    轉得出中文——直接以 `_ZH_DIGITS[n]` 索引會在 n ≥ 10 時越界或退回阿拉伯數字，
+    使比對永遠不成立。
+    """
+    if n < 0 or n > 99:
+        return str(n)
+    if n < 10:
+        return _ZH_DIGITS[n]
+    tens, ones = divmod(n, 10)
+    return (
+        ("" if tens == 1 else _ZH_DIGITS[tens])
+        + "十"
+        + ("" if ones == 0 else _ZH_DIGITS[ones])
+    )
+
+
 def check_skills() -> None:
     """每個 skill 需有可解析的 frontmatter 與 description。"""
     skill_dirs = sorted(d for d in (ROOT / "skills").iterdir() if d.is_dir())
@@ -165,9 +187,8 @@ def check_skills() -> None:
         and "disable-model-invocation: true" in read(d / "SKILL.md")
     )
     core_count = len(skill_dirs) - cmd_count
-    zh = "零一二三四五六七八九十"
-    expect_core = zh[core_count] if core_count < len(zh) else str(core_count)
-    expect_cmd = zh[cmd_count] if cmd_count < len(zh) else str(cmd_count)
+    expect_core = zh_num(core_count)
+    expect_cmd = zh_num(cmd_count)
     claim = re.search(r"([零一二三四五六七八九十]+)個功能 skill＋([零一二三四五六七八九十]+)個 slash command skill", readme)
     if not claim:
         warn("README.md 找不到 skill 數量敘述，無法比對")

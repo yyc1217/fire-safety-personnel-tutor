@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-0.10.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.12.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -16,6 +16,7 @@
 | **statute-memorizer** | 法規記憶：跨法規對照表（內建 8 張＋即時生成）、記憶卡與口訣、考前必背懶人包（猜題範圍＋平時弱點）。 |
 | **study-planner** | 讀書計畫：初次使用先確認考試日期（預設每年六月第一個週末），按師／士命題頻率排研讀順序，進度分配與形式和使用者討論後產出（可勾銷清單或逐週排程，考前自動預留總複習與猜題）；進度看各設備規定是否逐步掌握，落後主動提醒重排，並與出題進度銜接。 |
 | **exam-archive** | 題庫查詢：依年度／科目／標籤取原卷 PDF、答案卷或單題原文。 |
+| **spaced-repetition** | 間隔重複複習排程（SM-2 簡化版）：追蹤各條文、公式與火災學知識點的記憶強度（`ease_factor`），答對就把下次複習往後推（1 天 → 6 天 → 間隔×係數）、答錯就打回 1 天；`/複習排程` 列出今天到期的項目，依記憶強度由弱到強逐項複習。排程存 `<data_dir>/review_schedule.db`（SQLite），與 `progress.json` 以既有標籤 key 對齊。 |
 
 ### Slash commands
 
@@ -24,6 +25,7 @@
 | `/抽考 [範圍?]` | 快速抽考一輪 3~5 題 | `/抽考 警報系統` |
 | `/出考卷 [科目?]` | 套用最新年度原卷版面（首尾標註【模擬考】）產出整卷仿真模擬試卷＋標準答案。**在獨立子代理中執行**，命題過程不佔主對話脈絡 | `/出考卷 消防法規` |
 | `/弱點複習 [範圍?]` | 依作答紀錄優先重考常錯考點 | `/弱點複習` |
+| `/複習排程 [範圍?]` | 間隔重複複習：列出今天到期（含逾期）的考點，依記憶強度由弱到強逐項複習，答完自動算出下次複習日 | `/複習排程 化學系統` |
 | `/掌握度 [範圍?]` | 把本機作答紀錄畫成各主題／設備／法條的內容覆蓋度文字條地圖（掌握度＝已展現掌握之內容點 ÷ 相關內容總點數），一眼看出哪裡強、哪裡還沒碰 | `/掌握度 水系統` |
 | `/對照表 [主題?]` | 跨法規對照表；留空列出內建清單 | `/對照表 各設備緊急電源` |
 | `/猜題 [範圍?]` | 產出猜題範圍（考點＋依據＋週期型態）：先秒回本地統計結果，詢問後才可選上網補近期動態 | `/猜題` |
@@ -57,8 +59,9 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 |------|------|--------|
 | `jq` | 查標籤索引（`corpus/tags_index.json` 約 370 KB，只取單鍵不整檔載入） | 自動改以 `python3 -c` 讀取，較慢但功能不變 |
 | `pdftoppm`（poppler-utils） | 把原卷 PDF 指定頁轉圖以判讀圖形題 | 圖形題改以文字描述說明，並附原卷頁碼供自行開啟 |
+| `python3` | `/複習排程` 的間隔重複排程計算與 SQLite 存取（**只用標準函式庫**，不必安裝任何套件） | `/複習排程` 停用，改以 `/弱點複習` 依常錯次數選題並說明差異；**不會由 AI 心算間隔**——算錯的排程比沒有排程更糟 |
 
-兩者皆為選配（macOS：`brew install jq poppler`；Debian／Ubuntu：`apt install jq poppler-utils`）。
+前兩者為選配（macOS：`brew install jq poppler`；Debian／Ubuntu：`apt install jq poppler-utils`）；`python3` 僅 `/複習排程` 需要，多數系統已內建。
 
 ### 權限提示
 
@@ -69,7 +72,11 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ```json
 {
   "permissions": {
-    "allow": ["Bash(jq *)", "Bash(pdftoppm *)"],
+    "allow": [
+      "Bash(jq *)",
+      "Bash(pdftoppm *)",
+      "Bash(python3 ~/.claude/plugins/cache/fire-safety-personnel-tutor-marketplace/fire-safety-personnel-tutor/skills/spaced-repetition/cli.py *)"
+    ],
     "additionalDirectories": [
       "~/.fire-safety-tutor",
       "~/.claude/plugins/cache/fire-safety-personnel-tutor-marketplace"
@@ -81,6 +88,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 兩個欄位擋的是不同的東西，**兩個都要加**：
 
 - **`allow`** 管的是「這個指令可不可以跑」。`jq` 與 `pdftoppm` 不在 Claude Code 內建的唯讀指令清單裡，所以預設會問。`ls`／`cat`／`grep`／`wc`／`head` 這些屬內建唯讀清單，**不必列**。
+  - 第三條是 `/複習排程` 的排程計算程式。**路徑請換成你自己的 plugin 安裝位置**（用 `/plugin` 查，或先跑一次 `/複習排程` 看詢問視窗顯示的路徑）；只放行這一支 `cli.py`，不要寫成 `Bash(python3 *)`——那等於放行任意 Python 程式。這條規則只影響排程檔（`~/.fire-safety-tutor/review_schedule.db`）的讀寫，不碰你其他資料。
 - **`additionalDirectories`** 管的是「可不可以碰這個目錄」。Claude Code 預設只信任你的工作目錄，而本 plugin 要查的**題庫、法條全文與索引都在 plugin 自己的安裝目錄底下**——這通常不是你的工作目錄，所以就算指令本身放行了，讀取仍會逐次詢問。**只加 `~/.fire-safety-tutor` 是不夠的**，那只涵蓋你的學習資料。
   - plugin 安裝目錄的實際位置隨 Claude Code 版本與你的安裝來源而異，上例是從本 repo 的 marketplace 安裝時的路徑；不確定的話可用 `/plugin` 查看，或直接加上層的 `~/.claude/plugins/cache`。
   - 這一行只讓**讀取**免詢問，不會讓寫入變成免詢問。
@@ -95,10 +103,12 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ├── .claude-plugin/          # plugin 與 marketplace 定義
 ├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
 ├── statutes/                # 命題大綱法規現行全文 md
-├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格、輸出格式範本
-├── skills/                  # 五個功能 skill＋十個 slash command skill（各為 <名稱>/SKILL.md）
-│   └── exam-tutor/modes/    # exam-tutor 的六個互斥模式（按需載入，見 SKILL.md 模式路由）
+├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定與複習排程規格、輸出格式範本
+├── skills/                  # 六個功能 skill＋十一個 slash command skill（各為 <名稱>/SKILL.md）
+│   ├── exam-tutor/modes/    # exam-tutor 的六個互斥模式（按需載入，見 SKILL.md 模式路由）
+│   └── spaced-repetition/   # 間隔重複排程：scheduler.py（演算法）／storage.py（SQLite）／cli.py（介面）
 ├── scripts/                 # 維護者工具（見 scripts/README.md）
+├── tests/                   # pytest 單元測試（排程演算法與儲存層，CI 執行）
 ├── docs/                    # 設計筆記、資料維護說明、待辦（入口：docs/index.md）
 └── CHANGELOG.md             # 版本紀錄、資料工作、決策紀錄與里程碑（唯一變更紀錄）
 ```

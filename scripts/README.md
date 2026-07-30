@@ -42,6 +42,21 @@
 
 轉檔後均需人工核對（CLAUDE.md：OCR 免責與查證、公式一律 LaTeX、附表處理原則）。
 
+## repo 完整性檢查與單元測試（CI）
+
+| 腳本 | 用途 |
+|------|------|
+| `ci_check_repo.py` | manifest／skill frontmatter／corpus 索引／markdown 連結／`${CLAUDE_PLUGIN_ROOT}` 路徑／`${user_config.*}` 代入／格式規範（上標、全形編號括號）之機械檢查。`--list` 列出檢查項、`-k <名>` 只跑部分。 |
+
+`tests/`（repo 根目錄）為 `skills/spaced-repetition/` 排程演算法與儲存層的 pytest 單元測試：
+
+```bash
+pip install pytest        # 受測程式本身只用標準函式庫
+python3 -m pytest tests/ -q
+```
+
+兩者皆由 `.github/workflows/validate.yml` 在每個 PR 上執行。
+
 ## 附註
 
 - `corpus/pdf/`（37 MB）與 `statutes/原始檔案/`（48 MB）為官方原卷／附表原始檔，屬**資料資產**，刻意入庫供 AI 與使用者查對，非垃圾大檔。

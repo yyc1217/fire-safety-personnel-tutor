@@ -5,3 +5,7 @@ __pycache__/
 # 暫存/系統檔
 .DS_Store
 *.tmp
+
+# 使用者資料（排程檔只存在 data_dir，不該入庫；測試用臨時檔亦擋掉）
+*.db
+.pytest_cache/

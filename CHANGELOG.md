@@ -23,6 +23,71 @@
 
 # 版本紀錄
 
+## [0.12.0] - 2026-07-30 — 間隔重複複習排程（SM-2）：依遺忘曲線排下次複習時機
+
+原本的複習只有一個切入點：`/弱點複習` 依「錯幾次」（`weak_tally`）選題，答對就算克服。
+但答對的東西也會忘——**忘掉之前再問一次**才是留住記憶的關鍵，而這需要有人記著「什麼時候該再問」。
+本版新增 `spaced-repetition` skill 與 `/複習排程`，以 SM-2 簡化版追蹤各考點的記憶強度並排定複習日。
+
+> 版號跳過 0.11.0：該版號由 PR #62（索引與大檔精準取用）取用中，本版接在其後。
+
+### 新增
+
+- **`skills/spaced-repetition/`**——三層分離，各自可獨立驗證：
+  - `scheduler.py`：**純演算法、零 I/O**。答對間隔 1 天 → 6 天 → `round(前次間隔 × ease_factor)`；
+    答錯則 `repetitions` 歸零、間隔重置 1 天；`ease_factor` 每次答題後依公式更新、**下限鎖 1.3**。
+    兩個原始 SM-2 描述留有空間之處就地固定並以測試把關：**算間隔用答題前的 `ease_factor`**、
+    **四捨五入採 half-up**（Python 內建 `round()` 的 banker's rounding 會讓間隔莫名少一天）。
+  - `storage.py`：SQLite 存取與遷移（`PRAGMA user_version`，開檔自動升級、拒絕被舊版覆寫）。
+    表 `review_items`（每考點一列）＋ `review_history`（每次作答一列，可回溯間隔怎麼長出來的）。
+  - `cli.py`：`init`／`due`／`record`／`preview`／`add`／`show`／`list`／`stats`／`upcoming`／
+    `reset`／`remove`／`import`，一律附 `--json`。批改分數可直接餵入（`--essay 18/25`、
+    `--result correct --hinted`），換算規則由程式負責，不必模型心算。
+  - `SKILL.md`：一輪複習流程（取到期項目 → 逐項出題 → 判定品質分數 → 算回排程 → 收尾）。
+- **`/複習排程 [範圍?]`** slash command：列出今天到期（含逾期）的考點，**依 `ease_factor` 由低到高**
+  （最弱的先複習），每項附法規依據、上次結果與逾期天數。
+- **`reference/複習排程規格.md`**：排程的唯一真相——`item_id` 命名、批改分數→品質分數對映、
+  表結構、`cli.py` 介面、各 `weakness_tracking` 模式行為與優雅退場處置。
+- **`tests/`（114 個 pytest 測試）**：涵蓋連續答對之間隔遞增、答錯歸零與重新學習、
+  `ease_factor` 下限、`quality = 3`（剛好及格）邊界、half-up 進位、到期排序與並列時的定序、
+  試算不寫檔、schema 遷移與外鍵、CLI 各子指令輸出與結束碼。CI 於每個 PR 執行。
+
+### 變更（與既有功能整合）
+
+- **`item_id` 直接沿用既有標籤 key**（`by_article:設置標準第31條`、`by_equipment:滅火器`、
+  `by_topic:燃燒理論`，細到單一要點時加 `#<要點名>`），與 `corpus/tags_index.json`、
+  `progress.json` 之 `weak_tally`／`coverage` 同一套字串。**不自創新 ID**——否則無法用 jq 反查
+  考古題出題，也無法和弱點次數、覆蓋度對照。前綴不合既有維度時 `cli.py` 在 stderr 提醒（不阻擋）。
+- **exam-tutor「解答與批改」新增第 6 點**：批改後除寫 `coverage` 外，對本題所涉考點呼叫
+  `cli.py record`。**答錯照樣要記**（答錯是間隔重複最重要的訊號），與只在答對時累積的 `coverage` 不同。
+- **`/弱點複習` 併看排程**：同時「常錯」又「今天到期」的考點排到最前面；排程檔不存在或無
+  `python3` 時照原流程進行。兩者角色仍分明——弱點複習依「錯幾次」，複習排程依「該不該再看了」。
+- **資料位置遵守寫入邊界**：排程檔為 `<data_dir>/review_schedule.db`，**不在 plugin 目錄**
+  （plugin 目錄唯讀，且每次更新會被覆寫）。`user-config-spec.md` 補上該檔與
+  `review_scheduling` 設定欄（僅 `notes` 模式有意義）。
+- **`weakness_tracking` 三模式各有行為**：`auto` 完整運作；`notes` 首次使用問一次要不要建排程檔
+  （只存日期與係數、不存作答內容），答案記入 `config.json` 不再重問；`none` 完全不寫檔，
+  改用 `preview` 當場試算並導回 `/弱點複習`。
+- **`scripts/ci_check_repo.py`**：`zh_num()` 取代原本的字串索引轉中文數字——slash command 增至
+  十一個後，原寫法在 10 以上會退回阿拉伯數字，使 README 數量比對永遠不成立。
+- README 補 `spaced-repetition` 與 `/複習排程`、前置需求列 `python3`、權限提示補
+  `cli.py` 的 allow 規則範例（**只放行這一支，不放行 `Bash(python3 *)`**）。
+
+### 為什麼是 SQLite（而非併進 `progress.json`）
+
+排程的存取型態是「只取今天到期的那幾列」，SQL 一句 `WHERE next_review <= ? ORDER BY ease_factor`
+就只回傳當天用得到的資料；併進 `progress.json` 則每次都得把整份進度讀進脈絡才能篩，項目累積到
+數百筆後會變成每輪固定的脈絡開銷。這與 0.11.0（PR #62）「只取本次用得到的部分」是同一個原則。
+`progress.json` 仍是作答紀錄與掌握度的唯一來源，排程檔只存「什麼時候該再看一次」，兩者不重複存內容。
+
+### 未納入
+
+- **互動式 stdin REPL**（原構想的 `cli.py` 互動介面）：Claude Code 的 Bash 工具沒有互動 stdin，
+  `input()` 迴圈在此環境跑不起來；出題、追問、講解、判定品質分數本來就該由模型在對話中進行。
+  故 `cli.py` 一律單次執行、輸出可預期，「互動式複習介面」由 `SKILL.md` 承擔。
+- **由模型心算間隔**：無 `python3` 時不退化成模型自行推算日期——算錯的排程比沒有排程更糟，
+  改以 `/弱點複習` 進行並說明差異。
+
 ## [0.10.0] - 2026-07-25
 
 本版含兩批工作：**發布層與 plugin 規格體檢**（原標 0.9.0，因 `main` 已於 2026-07-22 發布 0.9.0「考點重考率×顆粒度分析」而併入本版）＋ **skill 結構重整**。
