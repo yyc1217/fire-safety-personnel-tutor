@@ -7,6 +7,7 @@ allowed-tools:
   - Grep
   - Bash(jq *)
   - Bash(pdftoppm *)
+  - Bash(date *)
   - WebSearch
   - WebFetch
 ---
@@ -44,8 +45,35 @@ allowed-tools:
 - 應考等別 `level`：`${user_config.level}`
 - 弱點記錄模式 `weakness_tracking`：`${user_config.weakness_tracking}`
 - 學習資料目錄 `data_dir`：`${user_config.data_dir}`
+- 本對話 ID（寫入 `pending.session_id` 用）：`${CLAUDE_SESSION_ID}`
 
 取值依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「**設定解析順序**」：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
+
+### 續作偵測（載入設定後、開始正題前）
+
+`weakness_tracking = "auto"` 時，讀 `<data_dir>/progress.json` 之 `pending`（未批改斷點），依
+`user-config-spec.md`「pending（未批改斷點）」節之**續作偵測**六條處理：有效斷點 → 報告上次問到哪一題、
+本輪完成幾題，並給「接續作答／丟掉重開／先丟著改做別的」三選項（**不要主動推薦 `/掌握度`**——
+它按條文列覆蓋度，等於繞道洩掉未批改題的考點；使用者自己要看，先告知風險再由他決定），
+接續時把 `pending.items[].question_text`
+**原樣貼回**；逾 14 天預設重開；`pending` 之設備／題目不是本對話出的（或 `session_id` 不同且未滿 30 分鐘）
+視為另一視窗正在練習，先問再動；等別不符預設丟棄。
+
+**續作提示不得洩題（鐵則六）**：手上雖有整個 `pending` 物件，續作提示**只能顯示**四樣東西——
+〈設備〉、模式、「本輪已完成 M／N 題」、`items[].question_text` 原文。
+**`articles`（所考條號）、`q_id`、`source`、`variant`、`max`（配分）、`asked_at` 一律不得顯示**，
+也不得改寫成「涉及設置標準第 38 條」「這題 25 分的申論」這類等價說法，更不可寫在題目前的導言裡。
+申論題只要知道考哪一條，等於在作答前先給了答題骨架——這與「題目呈現不得洩題」是同一條鐵則，
+只是漏在「顯示」而非「儲存」這一端。法源留待批改後才呈現。
+
+**這條管到整則訊息，不只提示區塊本身**：只要那些題還沒批改，**同一則回覆的任何段落**都不得點到
+它們的 `articles` 條號——最容易破功的是緊接在後的「建議接下來練哪裡」，它取自 `weak_tally`／
+`coverage`，很自然就寫出「`設置標準第73條` 還掛著錯誤紀錄」，而那正是使用者還沒作答那題的考點。
+**未批改期間，弱點與覆蓋建議只講到〈設備〉層級**（「泡沫滅火設備累積 3 次弱點」可以，
+點到是哪一條不行）；要談條號，等該輪批改完再談。
+
+**沒有 `pending` 就直接開始正題，一個字都不要提斷點**——連「先前沒有未批改的斷點」這種
+「我查過了，沒有喔」的內部狀態播報都不要，那對使用者只是雜訊。
 
 ## 上課方式
 
@@ -70,6 +98,12 @@ allowed-tools:
 3. **抽該設備的題目**：用 jq 對 `tags_index.json` 取單鍵，例如 `jq '.by_equipment["自動撒水設備"]' corpus/tags_index.json` 得題目參照清單（`等別/年/科目#題號`），再由參照推出 md 路徑讀題；可再以 `by_article` 交集對準索引目前進行到的條文，或以 `by_flag`（計算題等）、`by_system` 篩選。同條文優先抽考古題，考古題沒考過的條文再自行出題。
 4. **針對單一設備連續提問**：在該設備的索引條文覆蓋完之前不跳題。唯一例外是該設備與其他設備有共通處（如水源、消防幫浦）——此時在原設備脈絡下說明共通點，說明後**立即回歸原設備主題**。
 5. **出題進度**：`weakness_tracking = "auto"` 時把已問過的條文記入 `progress.json` 之 `coverage["<設備>"].asked`（**已問過≠已掌握**：`asked` 記出題進度、不論答對答錯；`done` 只在批改判定已掌握時寫入，見「解答與批改」）；使用者問「還有哪些條文沒考」與接續出題依 `asked`／`next` 回報。
+6. **出題即留斷點**：`auto` 模式呈現題目的**同一步**，把該題寫入 `progress.json` 之 `pending.items`（欄位見 `user-config-spec.md`），corpus 題另寫入 `asked_ids`。斷點**只存題目與內部指標，嚴禁寫入正解、評分要點或法源提示**（牴觸下文「先問、後等、再解」）；批改完該題即從 `items` 移除，一輪結束刪掉整個 `pending`。
+   - **一次寫完**：`pending.items`＋`coverage["<設備>"].asked`＋`asked_ids` **併成同一次 `progress.json` 寫入**，不得拆成三次（每次寫入在真人環境就是一次權限提示，見 `user-config-spec.md`「每題最多兩次 progress.json 寫入」）。
+   - **`created_at` 取系統時間**：以 `date -Iseconds` 取真實時間寫入，不得自行推寫時分秒與時區；取不到時只寫日期（見 `user-config-spec.md` 之 `pending` 欄位表）。
+   - **自出題 `q_id` 一經寫入即固定**：序號＝當日已用最大序號＋1（看 `attempts.jsonl` 當日各行與現有 `pending.items`），後續改寫 `progress.json` 時**不得重編**——換了號等於變成兩題。**序號後再加 4 碼小寫英數隨機字尾**
+     （`自出題/2026-07-17#1-a7f3`）：兩個視窗同時出題會各自算出同一個序號，隨機字尾不需跨視窗協調即可避免
+     兩題共用一個 `q_id`（詳見 `user-config-spec.md` 同節）。
 
 ### 提問類型（以 1、2 為主，可由使用者指定或自行輪替）
 
@@ -102,7 +136,7 @@ allowed-tools:
    - 一輪多題時，輪末合計並換算百分比供參考。
 3. 給正確答案時逐步解釋，**引用相關法條並呈現全文，嚴格遵循「條、項、款、目」階層格式**（取自 `statutes/`，並標注法規版本日期）。
 4. **正解與講評之每一個論點都附法源出處**（法規名＋條號）供使用者查證；無法源之計算推導或實務見解明確標注「非法源：實務見解／計算推導」；延伸知識題標注「延伸知識（非法規條文）」。
-5. **記錄內容覆蓋度（`weakness_tracking = "auto"` 時）**：批改後除寫 `attempts`／`weak_tally` 外，判定使用者本題擬答**已展現掌握之內容點**，累積寫入 `progress.json` 之 `coverage`（schema 見 `user-config-spec.md`），供 `/掌握度` 計算覆蓋度：
+5. **記錄內容覆蓋度（`weakness_tracking = "auto"` 時）**：**每題批改完就地寫入，不得累積到一輪結束**（見 `user-config-spec.md`「寫入時機與併發」）——`attempts.jsonl` append 一行（獨立一次、必寫），`weak_tally`、`coverage.done`、自 `pending.items` 移除該題、成績記入 `pending.round.scored` 則**併成同一次 `progress.json` 寫入**（不得拆成多次）；同時判定使用者本題擬答**已展現掌握之內容點**，累積寫入 `progress.json` 之 `coverage`（schema 見 `user-config-spec.md`），供 `/掌握度` 計算覆蓋度：
    - **法條題**：批改時模型正在讀該條全文，就地把該條**切成「獨立要點」**（**語意單位，非項／款數**）：一款列舉多個獨立事項時逐項計為要點——例如設置標準第 14 條第一項第一款列甲類場所、地下建築物、幼兒園…即為多個要點。切分後**把全部要點名稱依序存入 `coverage["by_article:<條號>"].points`**（含尚未掌握者），將擬答**正確涵蓋之要點**加入同項 `done`（字串取自 `points`），`total`＝`len(points)`（供 `/掌握度` 呈現時只讀相除、不重掃全文）。只答其中一項不得算整條掌握（如只答「甲類場所」→ done 1／total 8）。**該條已有 `points` 時沿用既存切分與要點名稱**（只增補 `done`，不得重切改 `points`／`total`——否則各次批改分母漂移；修法時才重切並重置該條）。**舊檔該條有 `total` 無 `points`** → 依 `user-config-spec.md` 遷移規則：重切寫入 `points`、更新 `total`，既存 `done` 依語意對映至新要點名（無對應者移除）。
    - **火災學主題題**：擬答正確展現某知識點 → 加入 `coverage["by_topic:<主題>"].done`（知識點清單與分母＝`reference/索引/火災學主題知識點索引.md`，分母固定可不存 `total`）。
    - **設備題**：涵蓋某設備之條文 → 加入 `coverage["<設備>"].done`（既有格式，分母＝`reference/索引/設備條文索引.md` 該設備條文＋延伸知識，可不存 `total`）。
@@ -166,7 +200,7 @@ allowed-tools:
 進度紀錄一律存在**使用者自己的電腦、plugin 之外**（預設 `~/.fire-safety-tutor/`）；plugin 目錄內不可寫。規格、初次詢問流程、`config.json` 與 `progress.json` 之 schema **一律依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md`**：
 
 1. 首次需要時讀 `config.json`；不存在則一次問完「應考等別」與「弱點記錄模式」（auto／notes／none）並建檔，之後不再重複詢問。
-2. `auto`：作答後自動寫入 `progress.json`（attempts／asked_ids／weak_tally／coverage），弱點複習與「主動提議下一個設備」據此運作。
+2. `auto`：**出題時**寫斷點（`pending`／`asked_ids`／`coverage.asked`）、**每題批改完**寫成績（`attempts.jsonl` append 一行，更新 `weak_tally`／`coverage.done`）；弱點複習、「主動提議下一個設備」與跨對話續作據此運作。**逐題落地，不累到輪末。**
 3. `notes`：每次練習結束產出錯題與弱點筆記（**格式一律依 `reference/輸出格式/弱點筆記格式.md`**，確保日後可讀回選題），依使用者偏好存入 `<data_dir>/notes/` 或僅顯示。
 4. `none`：完全不記錄、不寫檔、不再詢問。
 5. 使用者可隨時以 `/備考設定` 重跑設定。
@@ -184,3 +218,8 @@ allowed-tools:
 | statutes 缺條文且網路抓不到 | 停下求助使用者 |
 | 無網路 | 明示「本次未含最新法規動態」，僅以 statutes 既有版本作答並標注版本日期 |
 | 使用者選擇不記進度 | 直接略過，不再重複詢問 |
+| **使用者拒絕寫入權限**（`Write`／`Edit` 提示按否） | 課照上，但**當場明講**「本題未寫入進度檔，關掉對話就接不回來、掌握度也不會更新」，並提議改用 `notes` 模式或於設定允許寫入。**不得靜默略過**——以為有記錄其實沒有是最糟的結果 |
+| **被拒絕之後的每一題** | **照常繼續嘗試寫入**，不得因為被拒過一次就認定「這個環境不能寫」而整場靜默停寫（使用者可能只是那一次不想存）。同一輪連續 2 次以上被拒，才一次性問「本輪都不要記錄嗎？」，得到明確答覆才停止嘗試；停止期間**每輪結束仍須再提醒一次**「本輪 N 題都未寫入」。詳見 user-config-spec「寫入被拒絕時」 |
+| `pending` 斷點逾 14 天／等別已改 | 一句話提及後**預設重開**，不要求使用者決定（見 user-config-spec「續作偵測」） |
+| `pending` 疑似屬於另一個視窗（設備／題目與本輪不符，或 `session_id` 非本對話且未滿 30 分鐘） | 另一視窗可能正在練習：**只鎖 `pending`**——該節不覆寫、先問使用者要接手還是另開一輪；**本題成績照常落地**（`attempts.jsonl` append、`weak_tally`／`coverage` 重讀合併）。**不得因斷點衝突就把整輪成績累到最後才補寫**（牴觸鐵則四） |
+| `progress.json` 損毀或解析失敗 | **先**把原檔另存為 `progress.json.corrupt-<YYYY-MM-DD>`，**才**重建（優先沿用損毀檔讀得出的內容，讀不出才由 `attempts.jsonl` 重算 `weak_tally`／`coverage`；皆不可讀時以無紀錄狀態繼續上課）；並**當場告知**檔案曾壞掉、原檔存在哪、救回了什麼。**不得就地覆寫、更不得全程不提** |

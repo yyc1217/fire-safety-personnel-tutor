@@ -8,7 +8,7 @@
 
 | 檔案 | 內容 | 主要使用者 |
 |------|------|-----------|
-| `user-config-spec.md` | 使用者設定檔（config.json）與進度檔（progress.json）共用規格、初次詢問流程、輸出檔命名慣例 | 全部 skill |
+| `user-config-spec.md` | 使用者設定檔（config.json）與進度檔（progress.json／attempts.jsonl）共用規格、初次詢問流程、跨對話續作斷點（pending）、寫入時機與 schema 遷移、輸出檔命名慣例 | 全部 skill |
 | `索引/設備條文索引.md` | 設備 × 條文課綱地圖（法源/條文/場所/設備分類/項目），按分類分組，共 338 列＋延伸知識考點 | exam-tutor（連續出題）、study-planner（單元切分）、statute-memorizer |
 | `索引/火災學主題知識點索引.md` | 火災學 19 個 `by_topic` 主題各列知識點，作為掌握度視覺化「火災學內容覆蓋度」之分母 | exam-tutor（掌握度視覺化模式、批改記錄覆蓋） |
 | `索引/法規條文清單索引.md` | `by_law` 前 5 大法規之條文骨架（法規→條號／章清單），由 `scripts/build_article_list.py` 產生；供 `/掌握度` 消防法規段列出全條文而**不重掃 statutes 全文** | exam-tutor（掌握度視覺化模式） |

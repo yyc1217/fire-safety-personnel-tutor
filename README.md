@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-0.10.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.11.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -69,7 +69,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ```json
 {
   "permissions": {
-    "allow": ["Bash(jq *)", "Bash(pdftoppm *)"],
+    "allow": ["Bash(jq *)", "Bash(pdftoppm *)", "Bash(date *)"],
     "additionalDirectories": [
       "~/.fire-safety-tutor",
       "~/.claude/plugins/cache/fire-safety-personnel-tutor-marketplace"
@@ -80,12 +80,16 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 
 兩個欄位擋的是不同的東西，**兩個都要加**：
 
-- **`allow`** 管的是「這個指令可不可以跑」。`jq` 與 `pdftoppm` 不在 Claude Code 內建的唯讀指令清單裡，所以預設會問。`ls`／`cat`／`grep`／`wc`／`head` 這些屬內建唯讀清單，**不必列**。
+- **`allow`** 管的是「這個指令可不可以跑」。`jq`、`pdftoppm` 與 `date`（出題時要取真實時間戳記斷點，不能靠模型自己推算）不在 Claude Code 內建的唯讀指令清單裡，所以預設會問。`ls`／`cat`／`grep`／`wc`／`head` 這些屬內建唯讀清單，**不必列**。
 - **`additionalDirectories`** 管的是「可不可以碰這個目錄」。Claude Code 預設只信任你的工作目錄，而本 plugin 要查的**題庫、法條全文與索引都在 plugin 自己的安裝目錄底下**——這通常不是你的工作目錄，所以就算指令本身放行了，讀取仍會逐次詢問。**只加 `~/.fire-safety-tutor` 是不夠的**，那只涵蓋你的學習資料。
   - plugin 安裝目錄的實際位置隨 Claude Code 版本與你的安裝來源而異，上例是從本 repo 的 marketplace 安裝時的路徑；不確定的話可用 `/plugin` 查看，或直接加上層的 `~/.claude/plugins/cache`。
   - 這一行只讓**讀取**免詢問，不會讓寫入變成免詢問。
 
 **寫入使用者資料一律逐次徵詢同意**：`Write`／`Edit` 刻意不列入任何 skill 的 `allowed-tools`，也**不建議**你把它們加進 allow 規則——你的作答紀錄與讀書計畫每次被改動時都該讓你看到。
+
+> 自 0.11.0 起，弱點記錄模式為 `auto` 時改成**逐題落地**（出題時留斷點、每題批改完寫成績），所以練習過程中的寫入提示會比以前密集——這是為了讓對話中斷後接得回來。實際密度約為**每題 2～3 次**：出題時 1 次（斷點）、批改時 1～2 次（作答紀錄與弱點／覆蓋度）。規格要求同一時機的多個欄位併成一次寫入，所以一輪 5 題大約是 10～15 次提示。
+>
+> **按了「否」不會影響上課**，但該題就不會進進度檔，Claude 會當場告訴你這件事；下一題**還是會再問一次**（你可能只是那一次不想存）。連續拒絕兩次以上，它會改問「本輪都不要記錄嗎？」，你說了才會整輪不再嘗試——而且輪末仍會提醒你這輪都沒記錄。
 
 > ⏳ **關於等待時間**：`/猜題` 採兩段式——第一段本地統計結果**很快就好**；之後詢問是否上網彙整近 12–24 個月官方修法／函令／時事，**同意才執行**、約需 5–8 分鐘。`/申論猜題` 與整卷 `/出考卷` 屬重工作（自行命題並附解答），**約需 5–8 分鐘（實際視你的使用設定與網路環境而定）**，過程不是卡住，請耐心稍候。其餘快節奏功能（`/抽考`、`/對照表` 等）則很快。
 
@@ -111,6 +115,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 - **先問、後等、再解**：使用者作答前不給答案。
 - **誠實性**：出題前自我驗證、答案須在法規中找得到；猜題附依據（強弱由措辭表達），不呈現假確定；擬答每一論點附法源。
 - **優雅退場**：資料缺漏或無網路時降級運作並說明，不可杜撰條文。
+- **跨對話續作**：出題後即在進度檔留下未批改斷點，關掉視窗、換一個對話都接得回來（`auto` 模式）；斷點只存題目，不存答案。
 
 ## License
 
