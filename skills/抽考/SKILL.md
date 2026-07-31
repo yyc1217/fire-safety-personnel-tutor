@@ -8,6 +8,7 @@ allowed-tools:
   - Glob
   - Grep
   - Bash(jq *)
+  - Bash(date *)
 ---
 使用 exam-tutor skill 進入「快速抽考模式」——**先讀 `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/快速抽考.md`**（該檔為本模式規範唯一真相），再依其執行：先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 依其「設定解析順序」載入使用者設定（plugin 設定 → config.json → 初次詢問），一輪出 3~5 題、快節奏一題一答一講。**開始出題前先跑「續作偵測」**：`weakness_tracking = "auto"` 時讀 `<data_dir>/progress.json` 之 `pending`，上次有沒答完的題就先問要接續或重開（規則見 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md`「pending（未批改斷點）」）。範圍：$ARGUMENTS
 

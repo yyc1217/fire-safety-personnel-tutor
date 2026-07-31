@@ -8,6 +8,7 @@ allowed-tools:
   - Glob
   - Grep
   - Bash(jq *)
+  - Bash(date *)
 ---
 使用 exam-tutor skill 進入「弱點複習模式」——**先讀 `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/弱點複習.md`**（該檔為本模式規範唯一真相），再依其執行：先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入使用者設定與 `progress.json` 之 `weak_tally`，按弱點嚴重程度選題重考。**開始選題前先跑「續作偵測」**：`weakness_tracking = "auto"` 時讀同檔之 `pending`，上次有沒批改完的題就先問要接續或重開（規則見同一份 spec 之「pending（未批改斷點）」）；成績與弱點**每題批改完立刻寫**，不累到輪末。範圍：$ARGUMENTS
 
