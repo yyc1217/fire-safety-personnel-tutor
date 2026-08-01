@@ -22,6 +22,7 @@
 | 腳本 | 用途 |
 |------|------|
 | `analyze_repeat_granularity.py` | 驗證命題「前一年考過的考點今年不會再考」之可信度：以**四層顆粒度**（設備／組件／子考點／子子考點）計算重考率，並以**置換檢定**（隨機基準）判斷是否真有「迴避去年考點」效應。詞庫見 `repeat_lexicon.json`，產出 `corpus/命題重考率分析.md` 與 `corpus/repeat_granularity.json`。⚠️ 子考點以下採**關鍵字啟發式**分桶（準確度有限，同 `build_tags.py` 之教訓），**絕不回寫** `tags_index.json`／inline `🏷️` 語意標籤；方法學與警語見 `docs/設計_重考率與顆粒度分析.md`。 |
+| `export_exam_points_csv.py` | 將 `corpus/repeat_granularity.json` 的考點分桶攤平為單一 CSV（`corpus/考點清單.csv`，utf-8-sig 供 Excel 直接開）：一列 = 等別 × 系統 × 顆粒度層 × 考點，含出現年份、最近／最早考過年、距今未考年數、該層未分類率與重考率判讀、詞庫比對關鍵字。預設只輸出師／士兩等別（`--scopes 師 士 合併` 可加合併列）。**純匯出，不重新判讀題目**，警語同上。 |
 
 ## 題庫品質校核（issue #3）
 
