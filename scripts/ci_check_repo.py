@@ -178,6 +178,76 @@ def check_skills() -> None:
         )
 
 
+def check_slash_commands() -> None:
+    """指令名須為 ASCII，且文件引用的 /指令 都要對得上實際 skill。"""
+    # Claude Code 會把 skill 名稱中的非 ASCII 字元逐字換成 '-'（`/抽考` → `/--`），
+    # 中文指令名會互相蓋掉而叫不動；文件裡的舊指令名則會叫使用者打不存在的指令。
+    names: set[str] = set()
+    for d in sorted(p for p in (ROOT / "skills").iterdir() if p.is_dir()):
+        f = d / "SKILL.md"
+        if not f.exists():
+            continue
+        fm = parse_frontmatter(read(f))
+        name = str((fm or {}).get("name") or d.name)
+        names.add(name)
+        if not name.isascii():
+            err(f"{rel(f)} name: {name!r} 含非 ASCII 字元——Claude Code 會逐字換成 '-'，指令會互相蓋掉")
+        if not d.name.isascii():
+            err(f"{rel(d)} 資料夾名含非 ASCII 字元（應與 ASCII 的 name: 同名）")
+        if fm and name != d.name:
+            err(f"{rel(f)} name: {name!r} 與資料夾名 {d.name!r} 不一致")
+
+    targets = md_files(["skills", "reference", "docs"]) + [
+        ROOT / "README.md",
+        ROOT / "CHANGELOG.md",
+        ROOT / ".claude-plugin" / "plugin.json",
+        ROOT / "scripts" / "build_article_list.py",
+    ]
+    # 前置排除路徑片段（`reference/對照表/`、`skills/fs-quiz/`、`原始檔案/…/附表一`）
+    zh_cmd = re.compile(r"(?<![\w一-鿿/.\-…])/[一-鿿]{2,}")
+    own_cmd = re.compile(r"/fs-[A-Za-z0-9\-]+")
+    for f in targets:
+        if not f.exists():
+            continue
+        text = read(f)
+        # CHANGELOG 記錄的是歷史，舊版指令名（`/設定`、`/猜題清單`）本就該原樣保留
+        for m in () if f.name == "CHANGELOG.md" else zh_cmd.finditer(text):
+            line = text[: m.start()].count("\n") + 1
+            err(f"{rel(f)}:{line} 出現中文 slash command {m.group(0)!r}——指令名一律用 ASCII（`/fs-*`）")
+        for m in own_cmd.finditer(text):
+            if m.group(0).lstrip("/") not in names:
+                line = text[: m.start()].count("\n") + 1
+                err(f"{rel(f)}:{line} 引用了不存在的指令 {m.group(0)!r}（skills/ 下無同名 skill）")
+
+
+def check_equipment_index() -> None:
+    """延伸知識考點之「設備」須與條文表用字一致（否則掌握度分母漏算）。"""
+    f = ROOT / "reference" / "索引" / "設備條文索引.md"
+    if not f.exists():
+        err("找不到 reference/索引/設備條文索引.md")
+        return
+    head, _, tail = read(f).partition("## 延伸知識考點")
+    if not tail:
+        err(f"{rel(f)} 找不到「延伸知識考點」節")
+        return
+    known = {
+        c[4].strip()
+        for line in head.splitlines()
+        if len(c := [x.strip() for x in line.split("|")]) >= 6
+        and c[1] in ("設置標準", "檢修基準", "公危管理", "其他")
+    } - {"-"}
+    for i, line in enumerate(tail.splitlines(), 1):
+        cells = [x.strip() for x in line.split("|")]
+        if len(cells) != 4 or not cells[1] or cells[1] in ("設備", "------"):
+            continue
+        if cells[1] not in known:
+            base = head.count("\n") + 1
+            err(
+                f"{rel(f)}:{base + i} 延伸知識考點之設備 {cells[1]!r} 不在條文表——"
+                f"掌握度分母會漏算這一列（設備名須單一且與條文表用字完全一致）"
+            )
+
+
 # --------------------------------------------------------------------------
 # 3. corpus 索引
 # --------------------------------------------------------------------------
@@ -338,7 +408,7 @@ def check_user_config_injection(declared: set[str]) -> None:
 
     代入只發生在「被叫用的那份 SKILL.md」；使用者實際叫用的是指令檔，
     只在正文寫「去讀某個 skill／模式檔」是取不到 plugin 設定的。
-    `/出考卷` 尤其不可省——它以 context: fork 執行，取不到值也無法回頭詢問。
+    `/fs-mock` 尤其不可省——它以 context: fork 執行，取不到值也無法回頭詢問。
     """
     for f in sorted((ROOT / "skills").rglob("SKILL.md")):
         text = read(f)
@@ -390,6 +460,8 @@ def check_format_rules() -> None:
 CHECKS = {
     "manifests": check_manifests,
     "skills": check_skills,
+    "slash-commands": check_slash_commands,
+    "equipment-index": check_equipment_index,
     "corpus-index": check_corpus_index,
     "links": check_links,
     "plugin-paths": check_plugin_paths,
