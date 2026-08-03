@@ -156,8 +156,8 @@ def check_skills() -> None:
         if at is not None and not isinstance(at, list):
             err(f"{rel(f)} allowed-tools 應為 YAML 清單（含空白的規則如 'Bash(jq *)' 不可用空白分隔字串）")
 
-    # README 宣稱的 slash command 數量需與實際相符
-    readme = read(ROOT / "README.md")
+    # docs/index.md 專案結構宣稱的 slash command 數量需與實際相符（1.2.3 起自 README 移入）
+    docs_index = read(ROOT / "docs" / "index.md")
     cmd_count = sum(
         1
         for d in skill_dirs
@@ -168,12 +168,12 @@ def check_skills() -> None:
     zh = "零一二三四五六七八九十"
     expect_core = zh[core_count] if core_count < len(zh) else str(core_count)
     expect_cmd = zh[cmd_count] if cmd_count < len(zh) else str(cmd_count)
-    claim = re.search(r"([零一二三四五六七八九十]+)個功能 skill＋([零一二三四五六七八九十]+)個 slash command skill", readme)
+    claim = re.search(r"([零一二三四五六七八九十]+)個功能 skill＋([零一二三四五六七八九十]+)個 slash command skill", docs_index)
     if not claim:
-        warn("README.md 找不到 skill 數量敘述，無法比對")
+        warn("docs/index.md 找不到 skill 數量敘述，無法比對")
     elif (claim.group(1), claim.group(2)) != (expect_core, expect_cmd):
         err(
-            f"README skill 數量與實際不符：README 稱 {claim.group(1)}＋{claim.group(2)}，"
+            f"docs/index.md skill 數量與實際不符：文中稱 {claim.group(1)}＋{claim.group(2)}，"
             f"實際 {expect_core}（功能）＋{expect_cmd}（slash command）"
         )
 

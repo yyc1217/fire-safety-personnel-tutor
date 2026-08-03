@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-1.2.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.3-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -32,8 +32,7 @@
 | `/fs-plan [考試日期?]` | 初次使用先確認考試日期（預設每年六月第一個週末），討論後排研讀順序或週排程 | `/fs-plan` |
 | `/fs-setup` | 應考等別（師／士）、弱點記錄模式、資料目錄 | `/fs-setup` |
 
-> **為什麼是英文指令名**：Claude Code 目前會把 skill 名稱中的非 ASCII 字元**逐字換成 `-`**，中文指令名會被註冊成 `/--`、`/---` 之類而互相蓋掉，十支裡只有少數叫得動。1.0.0 起一律改用 `fs-` 前綴的 ASCII 名（舊的中文指令名不再可用）。
-> **仍可用中文找**：打 `/` 後輸入中文即可——每支指令的說明都以【抽考】【掌握度】這樣的中文名開頭。
+> **指令名是英文，但可以用中文找**：打 `/` 後輸入中文即可——每支指令的說明都以【抽考】【掌握度】這樣的中文名開頭。（為何不直接取中文指令名，見[設計原則](docs/設計原則.md#指令名一律用-ascii)。）
 
 ### 不想記指令？直接用中文說
 
@@ -52,7 +51,7 @@
 
 ## 使用範例
 
-輸出格式範本集中於 [`reference/輸出格式/`](reference/輸出格式/)，**每檔＝格式定義＋文末範例**：
+各功能的輸出長什麼樣子，可直接看範本——**每檔＝格式定義＋文末範例**，集中於 [`reference/輸出格式/`](reference/輸出格式/)：
 
 - **出題練習範例**（六科出題範例）：見 [`reference/輸出格式/出題呈現格式.md`](reference/輸出格式/出題呈現格式.md)。以消防安全設備為主體、依設備條文索引連續出題，出題後停下等作答；批改時才給分數、條文全文與法源出處。
 - **猜題報告範例**（`/fs-forecast` 六科範例）：見 [`reference/輸出格式/猜題報告格式.md`](reference/輸出格式/猜題報告格式.md)。依科目分層，先給統計結果與一問一答考點，再詢問是否上網補近期修法／時事。
@@ -77,7 +76,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 >   整卷模擬考同理，說「存這份考卷」後把檔案內容複製走。
 > - 這是執行環境的限制，不是設定問題——把 `data_dir` 指到別的路徑也一樣，那個路徑同樣在容器裡。
 
-> 📦 **安裝體積**：本 plugin **附完整原始資料**，工作樹約 **142 MB**（其中考古題原卷 PDF 37 MB、法規原始檔 55 MB），連同 git 歷史首次下載約 **265 MB**，請預留時間與磁碟空間。原始 PDF 是刻意入庫的——批改與查證時要能翻回官方原卷，不只看轉檔後的 md。
+> 📦 **安裝體積**：本 plugin **附完整原始資料**，工作樹約 **142 MB**（其中考古題原卷 PDF 37 MB、法規原始檔 55 MB），連同 git 歷史首次下載約 **265 MB**，請預留時間與磁碟空間。
 
 ### 前置需求
 
@@ -121,30 +120,6 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 
 > ⏳ **關於等待時間**：`/fs-forecast` 採兩段式——第一段本地統計結果**很快就好**；之後詢問是否上網彙整近 12–24 個月官方修法／函令／時事，**同意才執行**、約需 5–8 分鐘。`/fs-essay` 與整卷 `/fs-mock` 屬重工作（自行命題並附解答），**約需 5–8 分鐘（實際視你的使用設定與網路環境而定）**，過程不是卡住，請耐心稍候。其餘快節奏功能（`/fs-quiz`、`/fs-compare` 等）則很快。
 
-## 目錄結構
-
-```
-├── .claude-plugin/          # plugin 與 marketplace 定義
-├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
-├── statutes/                # 命題大綱法規現行全文 md
-├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格、輸出格式範本
-├── skills/                  # 五個功能 skill＋十個 slash command skill（各為 <名稱>/SKILL.md）
-│   └── exam-tutor/modes/    # exam-tutor 的六個互斥模式（按需載入，見 SKILL.md 模式路由）
-├── scripts/                 # 維護者工具（見 scripts/README.md）
-├── docs/                    # 設計筆記、資料維護說明、待辦（入口：docs/index.md）
-└── CHANGELOG.md             # 版本紀錄、資料工作、決策紀錄與里程碑（唯一變更紀錄）
-```
-
-題庫與法規之維護細節（標籤索引流程、新年度試卷納入、法規整理規範）見 [`docs/資料維護.md`](docs/資料維護.md)；設計筆記與待辦之總覽見 [`docs/index.md`](docs/index.md)；歷次變更、決策紀錄與里程碑見 [`CHANGELOG.md`](CHANGELOG.md)。
-
-## 設計原則
-
-- **以 corpus 取題型風格，以 statutes／即時搜尋取法源**：考古題僅為當年法規快照，不可當現行法引用。
-- **先問、後等、再解**：使用者作答前不給答案。
-- **誠實性**：出題前自我驗證、答案須在法規中找得到；猜題附依據（強弱由措辭表達），不呈現假確定；擬答每一論點附法源。
-- **優雅退場**：資料缺漏或無網路時降級運作並說明，不可杜撰條文。
-- **跨對話續作**：出題後即在進度檔留下未批改斷點，關掉視窗、換一個對話都接得回來（`auto` 模式）；斷點只存題目，不存答案。
-
 ## License
 
 **程式碼與整理成果** —— skill 定義、腳本、索引、對照表、輸出格式範本、各法規之 markdown 轉寫與標註：MIT，見 [LICENSE](LICENSE)。
@@ -158,3 +133,14 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 | `statutes/原始檔案/` 法規原文（PDF／DOC／ODT） | 全國法規資料庫、內政部消防署 | 法規原文不受著作權法保護（著作權法第 9 條） |
 
 引用法條前請依主管機關公告之**現行版本**核對；本 repo 之 md 為整理當下的版本快照，各檔檔首附「📌 免責聲明」與版本日期。
+
+---
+
+## 想更深入？
+
+以下文件面向**開發者與維護者**，一般使用者不需要閱讀：
+
+- [`docs/設計原則.md`](docs/設計原則.md)：本 plugin 的行為準則（先問後等再解、法源與誠實性、優雅退場、跨對話續作）與若干設計取捨的緣由。
+- [`docs/index.md`](docs/index.md)：專案目錄結構、設計筆記、資料維護說明與待辦之總入口。
+- [`docs/資料維護.md`](docs/資料維護.md)：題庫與法規之維護細節（標籤索引流程、新年度試卷納入、法規整理規範）。
+- [`CHANGELOG.md`](CHANGELOG.md)：歷次變更、決策紀錄與里程碑。

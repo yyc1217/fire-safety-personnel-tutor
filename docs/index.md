@@ -1,11 +1,26 @@
 # docs 導覽
 
-本資料夾存放本 plugin 的**設計筆記、維護說明與待辦**，以及命題大綱原始檔。面向維護者與貢獻者（非 skill 執行時讀取）。變更紀錄已移至根目錄 [`CHANGELOG.md`](../CHANGELOG.md)。
+本資料夾存放本 plugin 的**設計筆記、維護說明與待辦**，以及命題大綱原始檔。面向維護者與貢獻者（非 skill 執行時讀取）。變更紀錄已移至根目錄 [`CHANGELOG.md`](../CHANGELOG.md)；面向使用者的安裝、指令與權限設定說明在根目錄 [`README.md`](../README.md)。
+
+## 專案結構
+
+```
+├── .claude-plugin/          # plugin 與 marketplace 定義
+├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
+├── statutes/                # 命題大綱法規現行全文 md
+├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格、輸出格式範本
+├── skills/                  # 五個功能 skill＋十個 slash command skill（各為 <名稱>/SKILL.md）
+│   └── exam-tutor/modes/    # exam-tutor 的六個互斥模式（按需載入，見 SKILL.md 模式路由）
+├── scripts/                 # 維護者工具（見 scripts/README.md）
+├── docs/                    # 設計筆記、資料維護說明、待辦（入口：本檔）
+└── CHANGELOG.md             # 版本紀錄、資料工作、決策紀錄與里程碑（唯一變更紀錄）
+```
 
 ## 設計筆記
 
 | 檔案 | 內容 |
 |------|------|
+| [`設計原則.md`](設計原則.md) | 各 skill 共同遵循的行為準則（以 corpus 取風格／以 statutes 取法源、先問後等再解、誠實性、優雅退場、跨對話續作）與設計取捨緣由（ASCII 指令名、原始 PDF 入庫）。 |
 | [`設計_題目標籤系統.md`](設計_題目標籤系統.md) | per-question 標籤系統 taxonomy：題型／系統／設備／法規／條號／知識領域／旗標之維度與允許值、雙軌儲存（inline `🏷️`＋中央索引）與分類校正流程。 |
 | [`設計_猜題權重與複習模式.md`](設計_猜題權重與複習模式.md) | 猜題的法條加權頻率演算法（近年加重之指數衰減）與 exam-tutor 按系統複習模式之設計。 |
 | [`設計_跨session狀態.md`](設計_跨session狀態.md) | 跨對話（session）狀態設計：0.10.0 的九項落差盤點、`progress.json`／`attempts.jsonl` 拆檔、未批改斷點 `pending` 與續作偵測、寫入時機與併發取捨、`schema_version` 遷移。 |
