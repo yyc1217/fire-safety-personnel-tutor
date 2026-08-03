@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-0.12.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -32,7 +32,7 @@
 | `/fs-plan [考試日期?]` | 初次使用先確認考試日期（預設每年六月第一個週末），討論後排研讀順序或週排程 | `/fs-plan` |
 | `/fs-setup` | 應考等別（師／士）、弱點記錄模式、資料目錄 | `/fs-setup` |
 
-> **為什麼是英文指令名**：Claude Code 目前會把 skill 名稱中的非 ASCII 字元**逐字換成 `-`**，中文指令名會被註冊成 `/--`、`/---` 之類而互相蓋掉，十支裡只有少數叫得動。0.12.0 起一律改用 `fs-` 前綴的 ASCII 名（舊的中文指令名不再可用）。
+> **為什麼是英文指令名**：Claude Code 目前會把 skill 名稱中的非 ASCII 字元**逐字換成 `-`**，中文指令名會被註冊成 `/--`、`/---` 之類而互相蓋掉，十支裡只有少數叫得動。1.0.0 起一律改用 `fs-` 前綴的 ASCII 名（舊的中文指令名不再可用）。
 > **仍可用中文找**：打 `/` 後輸入中文即可——每支指令的說明都以【抽考】【掌握度】這樣的中文名開頭。
 
 ### 不想記指令？直接用中文說

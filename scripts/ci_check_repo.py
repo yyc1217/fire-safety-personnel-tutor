@@ -220,6 +220,34 @@ def check_slash_commands() -> None:
                 err(f"{rel(f)}:{line} 引用了不存在的指令 {m.group(0)!r}（skills/ 下無同名 skill）")
 
 
+def check_equipment_index() -> None:
+    """延伸知識考點之「設備」須與條文表用字一致（否則掌握度分母漏算）。"""
+    f = ROOT / "reference" / "索引" / "設備條文索引.md"
+    if not f.exists():
+        err("找不到 reference/索引/設備條文索引.md")
+        return
+    head, _, tail = read(f).partition("## 延伸知識考點")
+    if not tail:
+        err(f"{rel(f)} 找不到「延伸知識考點」節")
+        return
+    known = {
+        c[4].strip()
+        for line in head.splitlines()
+        if len(c := [x.strip() for x in line.split("|")]) >= 6
+        and c[1] in ("設置標準", "檢修基準", "公危管理", "其他")
+    } - {"-"}
+    for i, line in enumerate(tail.splitlines(), 1):
+        cells = [x.strip() for x in line.split("|")]
+        if len(cells) != 4 or not cells[1] or cells[1] in ("設備", "------"):
+            continue
+        if cells[1] not in known:
+            base = head.count("\n") + 1
+            err(
+                f"{rel(f)}:{base + i} 延伸知識考點之設備 {cells[1]!r} 不在條文表——"
+                f"掌握度分母會漏算這一列（設備名須單一且與條文表用字完全一致）"
+            )
+
+
 # --------------------------------------------------------------------------
 # 3. corpus 索引
 # --------------------------------------------------------------------------
@@ -433,6 +461,7 @@ CHECKS = {
     "manifests": check_manifests,
     "skills": check_skills,
     "slash-commands": check_slash_commands,
+    "equipment-index": check_equipment_index,
     "corpus-index": check_corpus_index,
     "links": check_links,
     "plugin-paths": check_plugin_paths,
