@@ -202,6 +202,7 @@ def check_slash_commands() -> None:
         ROOT / "CHANGELOG.md",
         ROOT / ".claude-plugin" / "plugin.json",
         ROOT / "scripts" / "build_article_list.py",
+        ROOT / "statutes" / "index.md",
     ]
     # 前置排除路徑片段（`reference/對照表/`、`skills/fs-quiz/`、`原始檔案/…/附表一`）
     zh_cmd = re.compile(r"(?<![\w一-鿿/.\-…])/[一-鿿]{2,}")

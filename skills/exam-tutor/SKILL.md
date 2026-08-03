@@ -23,12 +23,12 @@ allowed-tools:
 | 資源 | 位置 | 用途 |
 |------|------|------|
 | 考古題（md） | `${CLAUDE_PLUGIN_ROOT}/corpus/`（入口：`corpus/index.json`；md 在 `corpus/md/`） | 題型風格、題目內容 |
-| **標籤索引** | `corpus/tags_summary.json`（精簡計數，可整檔載入）／`corpus/tags_index.json`（tag→題目參照，**勿整檔載入**，用 jq 取單鍵）／`corpus/命題頻率分析.md`（報告） | **出題頻率統計、依系統／設備／法規／條號／題型／旗標快速定位題目**，毋需逐題掃描 |
+| **標籤索引** | `corpus/tags_summary.json`（頻率計數）／`corpus/tags_index.json`（tag→題目參照）／`corpus/命題頻率分析.md`（報告）——**取用方式見下方「索引與大檔取用原則」** | **出題頻率統計、依系統／設備／法規／條號／題型／旗標快速定位題目**，毋需逐題掃描 |
 | 題目附圖（pdf） | 依 index.json 之 `pdf` 欄位（`corpus/pdf/…`） | md 中標注〔圖：見原卷…第 N 頁〕時，開該 PDF 指定頁查看（`pdftoppm -f N -l N` 轉圖再判讀） |
 | 設備清單 | `${CLAUDE_PLUGIN_ROOT}/corpus/equipment_index.md` | 單一設備連續提問的單元邊界與頻率統計對照 |
-| **設備條文索引** | `${CLAUDE_PLUGIN_ROOT}/reference/索引/設備條文索引.md` | **連續出題的課綱地圖**：每個設備對應的全部條文（法源／條文／場所／項目），「項目」欄＝條文目的，供整合性出題與覆蓋進度追蹤 |
+| **設備條文索引** | `${CLAUDE_PLUGIN_ROOT}/reference/索引/設備條文索引.md`（**單一設備用 Grep 工具取該設備列，勿整檔 Read**） | **連續出題的課綱地圖**：每個設備對應的全部條文（法源／條文／場所／項目），「項目」欄＝條文目的，供整合性出題與覆蓋進度追蹤 |
 | 使用者設定與進度 | `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md`（規格）；資料存使用者 `data_dir` | 等別（師/士）、弱點記錄模式、作答紀錄、各設備條文覆蓋進度 |
-| 法條全文 | `${CLAUDE_PLUGIN_ROOT}/statutes/`（入口：`statutes/index.md`） | 批改與講解時引用條文全文 |
+| 法條全文 | `${CLAUDE_PLUGIN_ROOT}/statutes/`（入口：`statutes/index.md`）——**先用 Grep 工具定位條號行號，再以 Read 帶 offset／limit 只讀該區段**，見下方「索引與大檔取用原則」 | 批改與講解時引用條文全文 |
 | **消防圖說圖例** | `statutes/原始檔案/消防機關辦理建築物消防安全設備審查及查驗作業基準/附件三：消防圖說圖示範例.md`（17 類 284 個圖例；圖檔在同層 `附件三_圖例/`，機器索引 `附件三_圖例_index.json` 可用 jq 抽題） | **識圖題**出題來源（不在命題大綱明列，但為考題來源）：看圖答名、依名選圖（以同類別相似圖例作干擾選項）、加註規則（藥劑、等級、W 數、住警器 R） |
 | 重大事故時事 | 即時 web 搜尋 | 查過去一年臺灣消防安全相關重大事故，**只整理、理解、內化為出題靈感，不下載** |
 
@@ -36,9 +36,42 @@ allowed-tools:
 
 對 `corpus/`、`statutes/` 與 `reference/` 一律**唯讀**，絕不寫入；使用者資料只寫在 `data_dir` 之下。路徑一律以 `${CLAUDE_PLUGIN_ROOT}` 解析，絕不寫死絕對路徑。
 
+### 索引與大檔取用原則（全模式適用）
+
+**只取本次用得到的部分，不整檔載入。** 本 skill 多為單一設備／單一考點的連續出題，整檔載入索引會讓每輪多讀數萬字而其中九成九用不到。
+
+> **但精準取用是最佳化，不是前提。** 下表的 jq 路徑省 token，`Read`／`Grep` 路徑一定走得通（見「取不到時的退化」）。
+> **任何情況下都不得因為取用手段受限就放棄 corpus／statutes 而改為憑記憶自行出題**——寧可整檔讀、慢一點、貴一點，也不能給出無法回溯到法源的題目。
+
+| 檔案 | 取用方式 | 例 |
+|------|----------|-----|
+| `corpus/tags_index.json` | **一律**取單鍵，不整檔輸出（約 370 KB） | jq 可用時 `jq '.by_equipment["緊急照明設備"]' corpus/tags_index.json`；不可用時改用 **Grep 工具**以 tag 名定位再讀該段 |
+| `corpus/tags_summary.json` | **單一 tag 的頻率**優先用 jq 取單鍵（省 token）；**jq 不可用時整檔 `Read` 亦可**（約 90 KB，讀得完）；**需要跨 tag 排序時**本來就整檔載入 | `jq '.by_equipment["緊急照明設備"]' corpus/tags_summary.json`；退化時 `Read corpus/tags_summary.json` |
+| `reference/索引/設備條文索引.md` | **單一設備**用 **Grep 工具**取該設備列（`output_mode: content`） | pattern `緊急照明設備`、path 該索引檔 |
+| `statutes/` 之法規 md | **先用 Grep 工具（`output_mode: content`、`-n: true`）定位條號行號，再 Read 帶 offset／limit 只讀該區段**；勿整檔 Read | pattern `^## 第 17[5-9] 條` → 取得行號 → Read offset=該行 limit=60 |
+
+**`statutes/2_01_各類場所消防安全設備設置標準.md` 特別注意**：該檔 4,239 行，**超過 Read 工具預設 2,000 行上限**，整檔 Read 會被截斷且靜默取到不完整內容（可能漏掉後半部條文而誤判「查無此條」）。取該檔條文**必須**走 Grep → Read offset 流程。其餘法規 md 均在上限內，但仍以精準取用為原則。
+
+> 本節的定位與取段一律用 **Grep 工具**（本 skill 之 `allowed-tools` 已含 `Grep`），**不是** shell 的 `grep` 指令。
+> 兩者差別不在指令 allowlist——`grep` 屬 Claude Code 內建唯讀指令，本來就不必列（見 `README.md`）——而在**目錄邊界**：
+> 經由 Bash 執行的指令（`grep`／`jq`／`python3` 皆同）受工作目錄限制，而題庫與法條都在 **plugin 安裝目錄**底下，
+> 使用者未設 `additionalDirectories` 時會被擋；原生 `Grep`／`Read` 工具不受此限，實測在預設權限下可直接讀取。
+> **這也是為什麼 Grep／Read 是主要手段、jq 只是加速路徑。**
+
+**例外——判準是「需不需要比較不同 tag」**：要比較高低、排序、取前 N 名，就得看得到全部 tag，整檔載入 `tags_summary.json` 是正當的；只查某一個 tag 的數字，就取單鍵。
+
+適用整檔載入的已知情境（非窮舉，依上述判準自行判斷）：
+
+- 本 skill 之「選擇設備」——比較各設備頻率決定下一個單元；
+- `modes/系統複習.md`——系統內依加權頻率排序條文／設備；
+- `modes/申論猜題擬答.md`——依該等別加權頻率就地選取高頻考點；
+- `/fs-mastery`、`/fs-plan`、`/fs-forecast` 等全域統計產出。
+
+**一旦排序完成、進入單一設備／單一考點的連續出題，就改回 jq 取單鍵。** `tags_index.json`（370 KB）不在例外之列，**任何情境都取單鍵**。
+
 ## 使用者設定（開始上課前先載入）
 
-先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「設定解析順序」載入使用者設定：`level` 決定出題科目與題型（師＝6 科，其中火災學與四系統為全申論、**消防法規為申論 2 題＋測驗 40 題混合**；士＝4 科**皆**申論 2 題＋測驗 40 題混合），`weakness_tracking` 決定作答紀錄方式。（勿再誤植「師六科全申論」。）
+`level` 決定出題科目與題型（師＝6 科，其中火災學與四系統為全申論、**消防法規為申論 2 題＋測驗 40 題混合**；士＝4 科**皆**申論 2 題＋測驗 40 題混合），`weakness_tracking` 決定作答紀錄方式。（勿再誤植「師六科全申論」。）
 
 **目前的 plugin 設定值**（由 Claude Code 代入；空白＝使用者未設定）：
 
@@ -47,7 +80,22 @@ allowed-tools:
 - 學習資料目錄 `data_dir`：`${user_config.data_dir}`
 - 本對話 ID（寫入 `pending.session_id` 用）：`${CLAUDE_SESSION_ID}`
 
-取值依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 之「**設定解析順序**」：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
+**設定解析順序**：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
+
+**`user-config-spec.md` 延後到需要時才讀，不在開場載入。** 該檔約 8,700 字，內容是設定與 `progress.json` 的**規格**；上述解析順序已完整寫在這裡，出題階段不需要它。僅在下列時機 Read：
+
+- **要寫 `progress.json`**（批改後記錄 `attempts`／`weak_tally`／`coverage`）→ 需要其 schema 與 key 命名規則；
+- **跑初次詢問流程**（上列值與 `config.json` 皆無）→ 需要各欄位的完整定義與預設值；
+- **讀到既有 `progress.json` 但結構不符預期**（如舊檔缺 `points`）→ 需要其遷移規則。
+- **`progress.json` 有未批改斷點（`pending` 非空）** → 續作偵測與續作提示的顯示邊界（鐵則六）都定義在該檔，
+  **不得憑印象續作**：能顯示什麼、哪些欄位一律不得顯示，以該檔「pending（未批改斷點）」節與鐵則六為準。
+
+`weakness_tracking = "none"` 或純出題不寫檔的整輪，全程都不必讀該檔。
+
+出題階段會用到的兩個路徑就是下列兩個，**不必為了查路徑而讀規格檔**（`<data_dir>` 取上方代入值，未設定時為預設的 `~/.fire-safety-tutor`）：
+
+- `<data_dir>/config.json`——解析順序之順序 2。
+- `<data_dir>/progress.json`——`weak_tally`（弱點）與 `coverage`（`asked`／`next`／`done`）。**檔不存在＝尚無紀錄**（`weakness_tracking` 非 `auto`，或還沒作答過），屬正常狀態：照常出題即可，不得據此誤判為「沒有弱點」而略過弱點複習的說明，也不得因此跑初次詢問流程。
 
 ### 續作偵測（載入設定後、開始正題前）
 
@@ -86,14 +134,14 @@ allowed-tools:
    - **讀書計畫**：`<data_dir>/plans/讀書計畫_<等別><民國年>.md` 存在時，優先提議計畫中**下一個未完成單元**（study-planner 產出）；
    - 使用者想複習的**考試科目**（依 `level` 對應：如化學系統→滅火器、乾粉、CO₂…）；
    - `progress.json` 之 `weak_tally`（弱點設備優先）與 `coverage` 設備項之 `asked`／`next`（上次進行中、尚未問完的設備優先接續）；
-   - `tags_summary.json` 之 `by_equipment` 近五年頻率（高頻設備優先）。
+   - `tags_summary.json` 之 `by_equipment` 近五年頻率（高頻設備優先）。**此處要比較各設備高低，屬「索引與大檔取用原則」之跨 tag 排序例外，可整檔載入**；一旦設備選定、進入該設備的連續出題後，就改回 jq 取單鍵。
    提議時說明理由（例：「上次滅火器還剩公危場所條文沒問完，建議接續；或要換警報系統的火警自動警報設備（近五年最高頻）？」）。
 3. 使用者不想要提議時，**列出設備清單供挑選**：依 `reference/索引/設備條文索引.md` 之分類（化學／水／警報／避難／搶救）列出各設備，附近五年出題頻率與覆蓋進度。
 4. **接收 exam-trend-forecast 交棒**：使用者剛做完猜題並選「直接練」時，以其**高風險考點清單**（`by_equipment:`／`by_article:`／`by_topic:` tag）作為本輪出題範圍，逐考點出題，其餘流程不變。
 
 ### 提問順序（設備內：以「設備條文索引」為課綱地圖）
 
-1. 讀 `${CLAUDE_PLUGIN_ROOT}/reference/索引/設備條文索引.md`，列出該設備的**全部相關條文**，依序連續提問：**一般場所（設置標準）→ 公危場所（設置標準）→ 檢修基準（外觀／性能／綜合檢查）→ 延伸知識**（索引文末清單：不在法規但應會的專業知識，如四種乾粉的化學反應式，出題時明確標注「延伸知識題（非法規條文）」）。例：滅火器 → §14 應設場所 → §31 設置規定 → 公危 §223、§224、§225、§228 → 檢修基準第 1 章 → 乾粉化學反應式。
+1. 以 **Grep 工具**（pattern＝設備名，如 `緊急照明設備`；path＝`${CLAUDE_PLUGIN_ROOT}/reference/索引/設備條文索引.md`，`output_mode: content`）取**該設備的列**（勿整檔 Read，見「索引與大檔取用原則」），列出該設備的**全部相關條文**，依序連續提問：**一般場所（設置標準）→ 公危場所（設置標準）→ 檢修基準（外觀／性能／綜合檢查）→ 延伸知識**（索引文末清單：不在法規但應會的專業知識，如四種乾粉的化學反應式，出題時明確標注「延伸知識題（非法規條文）」）。例：滅火器 → §14 應設場所 → §31 設置規定 → 公危 §223、§224、§225、§228 → 檢修基準第 1 章 → 乾粉化學反應式。
 2. 索引的**「項目」欄＝條文目的**：出題前先讀該欄掌握條文脈絡，並用於**整合性出題**——把同設備多條文組成情境題（例：給一個場所情境，同時考應設判定 §14＋設置規定 §31＋防護距離 §224）。
 3. **抽該設備的題目**：用 jq 對 `tags_index.json` 取單鍵，例如 `jq '.by_equipment["自動撒水設備"]' corpus/tags_index.json` 得題目參照清單（`等別/年/科目#題號`），再由參照推出 md 路徑讀題；可再以 `by_article` 交集對準索引目前進行到的條文，或以 `by_flag`（計算題等）、`by_system` 篩選。同條文優先抽考古題，考古題沒考過的條文再自行出題。
 4. **針對單一設備連續提問**：在該設備的索引條文覆蓋完之前不跳題。唯一例外是該設備與其他設備有共通處（如水源、消防幫浦）——此時在原設備脈絡下說明共通點，說明後**立即回歸原設備主題**。
@@ -213,6 +261,7 @@ allowed-tools:
 |------|------|
 | `corpus/index.json` 不存在或 `papers` 為空 | 告知題庫尚未放入，提示依 `corpus/INGEST.md` 納入；可暫以類型 3（自行出題）搭配 statutes 出題 |
 | **`jq` 未安裝**（`command not found`） | 不中止：改以 `python3 -c` 取單鍵，效果相同——`python3 -c "import json;d=json.load(open('corpus/tags_index.json'));print(json.dumps(d['by_article']['設置標準第12條'],ensure_ascii=False))"`。**維持「只取所需單鍵、勿整檔輸出」**的鐵則 |
+| **`jq`／`python3`／shell 指令對 plugin 目錄被權限擋下**（權限詢問被拒、或未設 `additionalDirectories` 而不得進入 plugin 安裝目錄） | **不中止、更不得改為憑記憶出題。** 改用**原生 `Read`／`Grep` 工具**——它們不受 Bash 沙箱的工作目錄限制，實測在預設權限下可正常讀取 plugin 目錄：<br>・`tags_summary.json`（約 90 KB）→ 整檔 `Read`<br>・`tags_index.json`（約 370 KB）→ 以 **Grep** 用 tag 名定位再讀該段，勿整檔輸出<br>・法規條文 → 以 **Grep** 定位條號行號，再 `Read` 帶 offset／limit<br>成本較高但結果正確；並向使用者說明「本次改用較慢的讀取方式，可依 README 設定 `additionalDirectories` 與 `allow` 加速」 |
 | **`pdftoppm` 未安裝**（poppler-utils 缺席） | 該題附圖無法轉圖判讀：改以文字描述題目情境並附「原卷第 N 頁」供使用者自行開啟，或改抽無附圖之題目；不得憑空杜撰圖形內容 |
 | 題目附圖的 PDF 缺失 | 告知該題圖無法呈現，改抽其他題或口頭描述 |
 | statutes 缺條文且網路抓不到 | 停下求助使用者 |

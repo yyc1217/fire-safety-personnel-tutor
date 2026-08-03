@@ -23,6 +23,81 @@
 
 # 版本紀錄
 
+## [1.1.0] - 2026-08-03 — 索引與大檔改為精準取用，冷啟動 token 降約六成
+
+> 本節原以 0.11.0／0.11.1 開發（PR #62），因 1.0.0 先行合併，改以 1.1.0 發布；兩段內容原樣保留。
+
+### 修正 0.11.0（本版前身）在預設權限下的回歸
+
+行為驗證（[#63](https://github.com/yyc1217/fire-safety-personnel-tutor/issues/63) B 層）以 headless 實跑後發現：
+**在 `default` 權限下，`jq`／`python3`／shell 指令對 plugin 安裝目錄全部被沙箱擋下，只有原生 `Read`／`Grep` 可通行。**
+
+0.11.0 把 `tags_summary.json` 由「精簡計數，可整檔載入」改成「一律 jq 取單鍵」，等於把一條在預設權限下走得通的路，
+換成了會失敗的路。實測結果是模型宣告「corpus 無法讀取」並**直接退化成憑記憶自行出題**——對未設定
+`additionalDirectories` 的使用者，0.11.0 是淨負面：原本讀整檔（貴但正確），改動後拿到無法回溯法源的題目。
+
+#### 修正
+
+- **`tags_summary.json` 恢復整檔 `Read` 作為 fallback**（約 90 KB，讀得完）。jq 仍是優先路徑（省 token），
+  但不再是唯一路徑。`tags_index.json`（約 370 KB）維持不整檔輸出，補上 jq 不可用時改以 Grep 定位的替代路徑。
+- **退化條款新增「被權限擋下」一列**（有別於既有的「未安裝」）：明示改用原生 `Read`／`Grep`，逐檔給出替代取法，
+  並要求向使用者說明可依 README 設定 `additionalDirectories` 加速。既有退條的退路是 `python3`，
+  但實測顯示它與 jq 一起失效，涵蓋不到這個情況。
+- **`Bash(grep *) 會被權限擋下` 的機制描述有誤**，與 `README.md` 打架。`grep` 屬 Claude Code 內建唯讀指令、
+  本來就不必列進 allow；真正的擋點是**目錄邊界**——經由 Bash 執行的指令受工作目錄限制，而題庫與法條都在
+  plugin 安裝目錄底下。`exam-tutor/SKILL.md` 與 `statutes/index.md` 兩處同樣的錯誤描述均已改正。
+
+#### 新增
+
+- 取用原則開頭加註鐵則：**精準取用是最佳化，不是前提**。任何情況下都不得因為取用手段受限就放棄
+  `corpus/`／`statutes/` 而改為憑記憶自行出題——寧可整檔讀、慢一點、貴一點，也不能給出無法回溯到法源的題目。
+
+#### 已知未解（不在本版範圍）
+
+- 模型不照文件使用原生 `Grep` 工具，一律走 shell `grep`（3 個輪次中 Grep 工具使用次數為 0）。
+  措辭已寫至明確對比仍未生效，非文件層可解，另於 [#66](https://github.com/yyc1217/fire-safety-personnel-tutor/issues/66) 追蹤。
+- `jq` 對 plugin 目錄不可用是**跨 skill** 問題：`exam-archive`、`study-planner`、`statute-memorizer` 的退化條
+  同樣只寫了「jq 未安裝」。本版只收斂 0.11.0 自身引入的部分，其餘於
+  [#67](https://github.com/yyc1217/fire-safety-personnel-tutor/issues/67) 追蹤。
+
+### 索引與大檔改為精準取用
+
+出題類模式（`/fs-quiz`、`/fs-weak`、連續出題）原本會整檔載入數個索引，其中九成九的內容當輪用不到。
+本版把「只取本次用得到的部分」寫成規範，並修掉一個會靜默截斷的取檔風險。
+
+以「`/fs-quiz 緊急照明燈`」一輪估算，冷啟動輸入自 66,700 → 約 23,600 token（估算值，係數為中日韓字元 1.05、
+ASCII 0.30 token/字，未經 `count_tokens` 實測）。行為與產出不變——讀進來的資訊相同，只是不再整檔載入。
+
+#### 新增
+
+- `skills/exam-tutor/SKILL.md` 新增「**索引與大檔取用原則**」一節（全模式適用）：逐檔列出取用方式與範例，
+  並定義例外判準——「**需不需要比較不同 tag**」，需要就整檔、只查某一個就取單鍵。
+  `/fs-mastery`、`/fs-plan`、`/fs-forecast` 等全域統計產出不受限制。
+- `statutes/index.md` 新增「**大檔取用**」節，涵蓋所有會讀法條的 skill。
+
+#### 修正
+
+- **`statutes/2_01_各類場所消防安全設備設置標準.md` 整檔 Read 會靜默截斷**：該檔 4,239 行，超過 Read 工具
+  預設 2,000 行上限，整檔讀取只拿得到前半部且無任何錯誤提示。後果是查後半部條文（§175 緊急照明、
+  §180 以後之公共危險物品專章等）時誤判「查無此條」，或引用到不完整條文。已於兩處寫明必須走
+  Grep 工具定位行號 → Read 帶 offset／limit 的流程。本目錄其餘 md 均在上限內。
+- 定位與取段一律用 **Grep 工具**而非 shell `grep` 指令，並就地標注原因：各 skill 的 `allowed-tools`
+  只授權 `Bash(jq *)` 與 `Bash(pdftoppm *)`，`Bash(grep *)` 會被權限擋下。
+
+#### 變更
+
+- `corpus/tags_summary.json` 由「可整檔載入」改為**單一 tag 用 jq 取單鍵**（單鍵 160 tok vs 整檔 27,922 tok）。
+  跨 tag 排序的場合（如 exam-tutor 選擇設備時比較各設備頻率）維持整檔，並就地標注屬例外。
+- `reference/索引/設備條文索引.md` 由整檔 Read 改為**單一設備用 grep 取該設備列**（225 tok vs 10,146 tok）。
+- `reference/user-config-spec.md` **延後到需要時才讀**，不在開場載入：設定解析順序已寫在各 slash command
+  與 exam-tutor SKILL.md 內，出題階段不需要該規格檔。僅在要寫 `progress.json`、跑初次詢問流程、
+  或既有 `progress.json` 結構不符預期需查遷移規則時才讀。`/fs-quiz`、`/fs-weak` 同步調整。
+
+#### 未納入
+
+- 「把設定解析整個移到伺服器端」屬 web app 架構層（Agent SDK 之 userConfig 代入層）的做法，
+  在 plugin 內沒有對應元件——Claude Code 就是 runtime，沒有可代勞的伺服器。故本版只做「延後讀取」，
+  不做「不讀」。
 ## [1.0.0] - 2026-08-03 — 十支 slash command 改 ASCII 名稱；鐵則六擴及非出題 skill
 
 > **為何跳 MAJOR**：指令改名對既有使用者是破壞性變更（舊的中文指令名一律失效），依
