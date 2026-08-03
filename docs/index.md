@@ -2,20 +2,6 @@
 
 本資料夾存放本 plugin 的**設計筆記、維護說明與待辦**，以及命題大綱原始檔。面向維護者與貢獻者（非 skill 執行時讀取）。變更紀錄已移至根目錄 [`CHANGELOG.md`](../CHANGELOG.md)；面向使用者的安裝、指令與權限設定說明在根目錄 [`README.md`](../README.md)。
 
-## 專案結構
-
-```
-├── .claude-plugin/          # plugin 與 marketplace 定義
-├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
-├── statutes/                # 命題大綱法規現行全文 md
-├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格、輸出格式範本
-├── skills/                  # 五個功能 skill＋十個 slash command skill（各為 <名稱>/SKILL.md）
-│   └── exam-tutor/modes/    # exam-tutor 的六個互斥模式（按需載入，見 SKILL.md 模式路由）
-├── scripts/                 # 維護者工具（見 scripts/README.md）
-├── docs/                    # 設計筆記、資料維護說明、待辦（入口：本檔）
-└── CHANGELOG.md             # 版本紀錄、資料工作、決策紀錄與里程碑（唯一變更紀錄）
-```
-
 ## 設計筆記
 
 | 檔案 | 內容 |
