@@ -23,6 +23,26 @@
 
 # 版本紀錄
 
+## [1.2.1] - 2026-08-03 — 四支 skill 補上「jq 被權限擋下」的退化條
+
+[#67](https://github.com/yyc1217/fire-safety-personnel-tutor/issues/67) 的殘留項。1.1.0（PR #62）只替
+exam-tutor 補了這一列，其餘四支仍只寫「`jq` 未安裝 → 改以 `python3 -c` 取單鍵」——而 #67 實測的結論正是
+**`python3` 與 `jq` 一樣走 Bash、在預設權限下同樣被沙箱擋下**，所以那條退路在真實使用者身上走不通。
+
+### 修正
+
+- **exam-archive、exam-trend-forecast、statute-memorizer、study-planner** 各補一條「`jq`／`python3`／shell
+  指令對 plugin 目錄被權限擋下」的退化處置：**不中止、更不得改為憑記憶作答**，退路是**原生 `Read`／`Grep`
+  工具**（不受 Bash 沙箱的工作目錄限制，實測在預設權限下可正常讀取 plugin 目錄），並逐檔給出替代取法——
+  `tags_summary.json`（約 90 KB）整檔 `Read`、`tags_index.json`／`tags_cycles.json` 以 Grep 定位後讀該段、
+  大檔法規先 Grep 定位行號再 `Read` 帶 offset／limit；同時向使用者說明可依 README 設定
+  `additionalDirectories` 與 `allow` 加速。
+  - 既有的「`jq` 未安裝 → 改以 `python3`」一列保留：那是 `command not found` 的情境，與被權限擋下不同。
+  - statute-memorizer 該列另註明 `progress.json` 在使用者 `data_dir`、不受 plugin 目錄邊界影響。
+
+> #67 的另一半（以 `default` 權限實跑 `/fs-quiz 緊急照明燈`，確認不退化成憑記憶出題）仍需真人驗證，
+> headless 一律 `bypassPermissions`、沙箱不擋，跑了不算數。
+
 ## [1.2.0] - 2026-08-03 — 收尾 issue #65 的四項已知未處理與 F-2
 
 issue [#65](https://github.com/yyc1217/fire-safety-personnel-tutor/issues/65) 驗收時列為

@@ -30,5 +30,11 @@ allowed-tools:
 
 - 找不到對應試卷（年度或科目不在 index.json）時，直接列出現有清單供使用者選擇，並提示可依 `corpus/INGEST.md` 自行納入新試卷。
 - **`jq` 未安裝**（`command not found`）時不中止：改以 `python3 -c "import json;d=json.load(open('corpus/tags_index.json'));print(json.dumps(d['by_article']['設置標準第12條'],ensure_ascii=False))"` 取單鍵，**維持「只取所需單鍵、勿整檔輸出」**的鐵則。
+- **`jq`／`python3`／shell 指令對 plugin 目錄被權限擋下**（權限詢問被拒、或未設 `additionalDirectories`）時
+  **不中止、更不得改為憑記憶回答某年考過什麼**：`python3` 與 `jq` 同樣走 Bash、同樣被擋，**退路是原生
+  `Read`／`Grep` 工具**（不受 Bash 沙箱的工作目錄限制，實測在預設權限下可正常讀取 plugin 目錄）——
+  `corpus/index.json` 與各卷 md 直接 `Read`；`tags_index.json`（約 370 KB）以 **Grep** 用 tag 名定位再讀該段，
+  勿整檔輸出；`tags_summary.json`（約 90 KB）可整檔 `Read`。並向使用者說明「本次改用較慢的讀取方式，
+  可依 README 設定 `additionalDirectories` 與 `allow` 加速」。
 - 提供答案時一律以 md 內嵌答案（已含更正）為準，並附上答案卷 PDF 供查證。
 - 提醒使用者：試卷與其標準答案反映**當年**法規（`law_snapshot`），不可當現行法源；條文現況請以官方現行版為準——**全國法規資料庫**（<https://law.moj.gov.tw/>）與**內政部消防署「消防法令」**（<https://www.nfa.gov.tw/>）。歷屆答案可能因事後修法而與現行規定不符。
