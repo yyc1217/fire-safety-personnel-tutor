@@ -12,7 +12,7 @@ allowed-tools:
 ---
 使用 exam-tutor skill 進入「快速抽考模式」——**先讀 `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/快速抽考.md`**（該檔為本模式規範唯一真相），再依其執行：先依「設定解析順序」載入使用者設定（下列 plugin 設定 → `<data_dir>/config.json` → 初次詢問），一輪出 3~5 題、快節奏一題一答一講。**開始出題前先跑「續作偵測」**：`weakness_tracking = "auto"` 時讀 `<data_dir>/progress.json` 之 `pending`，上次有沒答完的題就先問要接續或重開。範圍：$ARGUMENTS
 
-**`user-config-spec.md` 不為了取設定而 Read**——解析順序已寫在本檔，出題階段不需要該規格檔。但 **`pending` 非空時必須讀**該檔之「pending（未批改斷點）」與鐵則六：續作提示能顯示什麼、哪些欄位一律不得顯示，以該檔為準，不得憑印象續作。其餘情形（批改後要寫 `progress.json`、需跑初次詢問流程）才讀（見 exam-tutor SKILL.md 之「使用者設定」）。
+**`user-config-spec.md` 不為了取設定而 Read**——解析順序已寫在本檔，載入設定不需要該規格檔。但**這不代表整輪都不會讀它**：`weakness_tracking = "auto"` 時，出題當下就要寫 `pending` 斷點，屆時仍需其寫入 schema（**直接 `Read offset=87 limit=139` 一次取足，別先 Grep 定位**，見 exam-tutor SKILL.md 之「使用者設定」）。另外 **`pending` 非空時必須讀**該檔之「pending（未批改斷點）」與鐵則六：續作提示能顯示什麼、哪些欄位一律不得顯示，以該檔為準，不得憑印象續作。其餘情形（批改後要寫 `progress.json`、需跑初次詢問流程）才讀（見 exam-tutor SKILL.md 之「使用者設定」）。
 
 ---
 

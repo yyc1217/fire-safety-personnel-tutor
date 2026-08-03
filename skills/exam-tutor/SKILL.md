@@ -115,7 +115,9 @@ corpus/md/<等別>/<年>/<科目代碼>_<科目名>.md
 
 **設定解析順序**：上列值非空即用；空白才讀 `<data_dir>/config.json`；兩者皆無才跑初次詢問流程。**已有值就別再問一次。**
 
-**`user-config-spec.md` 延後到需要時才讀，不在開場載入。** 該檔約 8,700 字，內容是設定與 `progress.json` 的**規格**；上述解析順序已完整寫在這裡，出題階段不需要它。僅在下列時機 Read：
+**`user-config-spec.md` 延後到需要時才讀，不在開場載入。** 該檔約 8,700 字，內容是設定與 `progress.json` 的**規格**；上述解析順序已完整寫在這裡，**開場載入設定不需要它**。僅在下列時機 Read：
+
+> **`weakness_tracking = "auto"` 時，這個「延後」只延到出題那一步，省不掉。** 逐題落地要求呈現題目的同一步就寫 `pending` 斷點（見下文「出題即留斷點」），寫就得有 schema。**別為此先 Grep 定位再 Read**（實測每輪都白花一次呼叫）——寫入所需的四節（`progress.json`／`attempts.jsonl`／`pending`／`寫入時機與併發`，含 `schema 版本與遷移`）是**連續**的一段，直接 **`Read` `reference/user-config-spec.md` 之 `offset=87 limit=139` 一次取足**即可。（此行號由 CI 之 `progress-spec-range` 檢查看守，區段位移時會擋下。）
 
 - **要寫 `progress.json`**（批改後記錄 `attempts`／`weak_tally`／`coverage`）→ 需要其 schema 與 key 命名規則；
 - **跑初次詢問流程**（上列值與 `config.json` 皆無）→ 需要各欄位的完整定義與預設值；
