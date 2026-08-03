@@ -24,7 +24,7 @@ allowed-tools:
 2. **取得單卷**：「給我 113 年水系統的原卷」→ 依 level/year/subject 比對後，將對應 PDF（或 md）檔案提供給使用者（以可用的檔案傳送方式送出；無法傳送檔案時，告知完整路徑並摘要 md 內容）。
 3. **取得答案卷**：優先提供 `mod_ans_pdf`（更正答案，若存在），並說明該卷有答案更正；否則提供 `ans_pdf`。
 4. **查單題**：「114 年法規第 15 題長怎樣？」→ 讀對應 md，引出該題原文與標準答案；**呈現格式依 `reference/輸出格式/題庫查詢與複習格式.md`**（首行標卷別與法規快照年、選項各行、末行標準答案、不附 🏷️ 標籤列）。
-5. **依標籤查題**：「哪些題考過自動撒水設備／設置標準第 12 條／計算題？」→ 用 jq 對 `${CLAUDE_PLUGIN_ROOT}/corpus/tags_index.json` 取對應維度單鍵（`by_equipment`／`by_system`／`by_law`／`by_article`／`by_topic`／`by_flag`／`by_type`），例如 `jq '.by_article["設置標準第12條"]' corpus/tags_index.json`，得題目參照清單（`等別/年/科目#題號`），再由參照推出 md 路徑列出各題。**勿整檔載入** `tags_index.json`（約 370 KB）；只取所需單鍵。各 tag 之出題次數可讀精簡的 `corpus/tags_summary.json`。
+5. **依標籤查題**：「哪些題考過自動撒水設備／設置標準第 12 條／計算題？」→ 用 jq 對 `${CLAUDE_PLUGIN_ROOT}/corpus/tags_index.json` 取對應維度單鍵（`by_equipment`／`by_system`／`by_law`／`by_article`／`by_topic`／`by_flag`／`by_type`），例如 `jq '.by_article["設置標準第12條"]' corpus/tags_index.json`，得題目參照清單（`等別/年/科目#題號`）。**由參照取該題不必再查 `index.json`**：全部 160 卷的 md 路徑一律為 `corpus/md/<等別>/<年>/<科目代碼>_<科目名>.md`，科目名不必知道——直接 Glob `corpus/md/士/115/0809_*.md` 取得卷路徑，再 Grep 定位題目標題（**測驗題**為 `^### 第 27 題`、半形數字前後有空格；**申論題**為 `^### 第一題`、中文數字附配分），最後 Read 帶 offset／limit 讀該題。**勿整檔載入** `tags_index.json`（約 370 KB）；只取所需單鍵。各 tag 之出題次數可讀精簡的 `corpus/tags_summary.json`。
 
 ## 注意事項
 
