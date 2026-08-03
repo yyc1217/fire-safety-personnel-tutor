@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -66,6 +66,16 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ```
 
 安裝／啟用時 Claude Code 會跳出**設定對話框**，可直接填應考等別（師／士）、弱點記錄模式與學習資料目錄；**留空也沒關係**——初次使用任一功能時會詢問並記住（`/fs-setup` 或 `/plugin` 設定對話框都可再改）。學習進度存於使用者本機 `~/.fire-safety-tutor/`（可改），plugin 目錄唯讀。
+
+> ⚠️ **在 Claude Code on the web／遠端 session 使用時，進度不會留下來**：那些環境的容器是**用完即丟**的，
+> `data_dir` 跟著容器一起消失——設定、作答紀錄、掌握度、讀書計畫、未答完的斷點全都不保留，
+> 下次開新 session 等於從零開始（每次還會再問一次應考等別）。
+>
+> - **要累積進度，請用本機的 CLI 或桌面版**（macOS／Windows／Linux），`data_dir` 才會真的落在你的磁碟上。
+> - 一定要在遠端環境用的話：把當次成果**帶走**再關掉——弱點記錄模式設成 `notes`，
+>   每輪結束會產出一份弱點筆記，自己存到本機；下次貼回來（或放進本機的 `<data_dir>/notes/`）就能接續選題。
+>   整卷模擬考同理，說「存這份考卷」後把檔案內容複製走。
+> - 這是執行環境的限制，不是設定問題——把 `data_dir` 指到別的路徑也一樣，那個路徑同樣在容器裡。
 
 > 📦 **安裝體積**：本 plugin **附完整原始資料**，工作樹約 **142 MB**（其中考古題原卷 PDF 37 MB、法規原始檔 55 MB），連同 git 歷史首次下載約 **265 MB**，請預留時間與磁碟空間。原始 PDF 是刻意入庫的——批改與查證時要能翻回官方原卷，不只看轉檔後的 md。
 

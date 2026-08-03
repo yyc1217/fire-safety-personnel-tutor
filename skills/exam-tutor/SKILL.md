@@ -249,9 +249,12 @@ allowed-tools:
 
 1. 首次需要時讀 `config.json`；不存在則一次問完「應考等別」與「弱點記錄模式」（auto／notes／none）並建檔，之後不再重複詢問。
 2. `auto`：**出題時**寫斷點（`pending`／`asked_ids`／`coverage.asked`）、**每題批改完**寫成績（`attempts.jsonl` append 一行，更新 `weak_tally`／`coverage.done`）；弱點複習、「主動提議下一個設備」與跨對話續作據此運作。**逐題落地，不累到輪末。**
-3. `notes`：每次練習結束產出錯題與弱點筆記（**格式一律依 `reference/輸出格式/弱點筆記格式.md`**，確保日後可讀回選題），依使用者偏好存入 `<data_dir>/notes/` 或僅顯示。
+3. `notes`：每次練習結束產出錯題與弱點筆記（**格式一律依 `reference/輸出格式/弱點筆記格式.md`**，確保日後可讀回選題），依使用者偏好存入 `<data_dir>/notes/` 或僅顯示。**下次需要弱點資料時自己去 Glob `<data_dir>/notes/` 讀回，不要叫使用者手動回貼**（規則見 `user-config-spec.md`「`notes` 模式的跨對話接續」）。
 4. `none`：完全不記錄、不寫檔、不再詢問。
 5. 使用者可隨時以 `/fs-setup` 重跑設定。
+6. **使用者貼回整卷模擬考的作答時**（`/fs-mock` 或「出一份模擬考」的產出），照常逐題批改並逐題落地，
+   `q_id` 用 `模擬考/<YYYY-MM-DD>#<題號>`、**不寫入 `asked_ids`**；分次批改時未批改的題留在 `pending`。
+   保存整卷與批改的完整規則見 `modes/整卷模擬考.md`「保存與批改」。
 
 ## 優雅退場
 
