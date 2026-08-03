@@ -249,6 +249,64 @@ def check_equipment_index() -> None:
             )
 
 
+# 僅在簡體中使用的字。清單以 statutes/、corpus/ 之正體語料反向驗證過：
+# 凡在那些檔案中出現過的字（伍／斗／蜂／裝／戒／准…）一律不列，避免誤判。
+SIMPLIFIED_ONLY = (
+    "与专业东丝两个丰为丽举义习书买产亲们价会伤关兴养军农净减凤击划则办务动医单卖卫厂厅历厉压厌县参双发变叠叶员围图壳处学实对导币师广库应废开弃张录惩战户护报损断时术机权条来构标样检残汇没洁润湿灭点"
+    "烧热爱现电画紧约级纪纸纹线练组织经绕统续维绵绸缎罚艺节范药营虫虾蚁蚕蛾蝇补袄袜袭裤规计认训议讲论证评识词试话该诫语说贝财责账货质购贵贷费资赠车过还这钙钢铁铜铝银销锌长门闭问间队题饰验鱼鸟鸡鸭龙"
+)
+
+def check_simplified_chinese() -> None:
+    """規格與文件不得出現簡體字（本 repo 一律正體中文）。"""
+    bad = set(SIMPLIFIED_ONLY)
+    targets = md_files(["skills", "reference", "docs"]) + [
+        ROOT / "README.md",
+        ROOT / "CHANGELOG.md",
+        ROOT / ".claude-plugin" / "plugin.json",
+        ROOT / ".claude-plugin" / "marketplace.json",
+    ]
+    for f in targets:
+        if not f.exists():
+            continue
+        for i, line in enumerate(read(f).splitlines(), 1):
+            hit = sorted({c for c in line if c in bad})
+            if hit:
+                err(f"{rel(f)}:{i} 出現簡體字 {''.join(hit)}：{line.strip()[:60]}")
+
+
+# 「累到輪末才寫」是 0.11.0 修掉的行為，措辭一旦回流就等於靜默回歸（鐵則四）
+BATCH_WRITE = re.compile(
+    r"(一輪(結束|完成|跑完)|輪(末|尾)|全部(答|做)完|最後(再|才)?)[^。；\n]{0,12}"
+    r"(一次|統一|才|再)?[^。；\n]{0,8}(寫入|寫回|落地|存檔|記錄)"
+)
+NEGATION = re.compile(r"不得|不可|嚴禁|勿|不要|禁止|不能|不再|不會|非|錯誤示範|反例")
+
+
+def check_write_timing() -> None:
+    """規格不得出現「累到一輪結束才寫入」這類措辭（鐵則四：逐題落地）。"""
+    for f in md_files(["skills", "reference"]):
+        text = read(f)
+        for m in BATCH_WRITE.finditer(text):
+            # 取該句（前後標點之間）判斷是否為否定敘述——「不得累積到一輪結束才寫」是合規的
+            s = text.rfind("\n", 0, m.start()) + 1
+            for sep in ("。", "；", "**", "，"):
+                k = text.rfind(sep, s, m.start())
+                if k != -1:
+                    s = max(s, k + len(sep))
+            e = min(
+                (x for x in (text.find(c, m.end()) for c in "。；\n") if x != -1),
+                default=len(text),
+            )
+            sentence = text[s:e]
+            if NEGATION.search(sentence):
+                continue
+            line = text[: m.start()].count("\n") + 1
+            err(
+                f"{rel(f)}:{line} 疑似「累到輪末才寫入」措辭（鐵則四要求逐題落地）："
+                f"{sentence.strip()[:70]}"
+            )
+
+
 # --------------------------------------------------------------------------
 # 3. corpus 索引
 # --------------------------------------------------------------------------
@@ -463,6 +521,8 @@ CHECKS = {
     "skills": check_skills,
     "slash-commands": check_slash_commands,
     "equipment-index": check_equipment_index,
+    "simplified-chinese": check_simplified_chinese,
+    "write-timing": check_write_timing,
     "corpus-index": check_corpus_index,
     "links": check_links,
     "plugin-paths": check_plugin_paths,
