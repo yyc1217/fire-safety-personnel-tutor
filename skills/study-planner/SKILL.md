@@ -90,6 +90,7 @@ allowed-tools:
 |------|------|
 | `tags_summary.json` 不存在 | 退化為讀 `corpus/命題頻率分析.md` 粗估排序，標注「頻率為粗估」 |
 | **`jq` 未安裝**（`command not found`） | 不中止：改以 `python3 -c "import json;d=json.load(open('corpus/tags_summary.json'));print(json.dumps(d[<鍵>],ensure_ascii=False))"` 取單鍵 |
+| **`jq`／`python3`／shell 指令對 plugin 目錄被權限擋下**（權限詢問被拒、或未設 `additionalDirectories` 而不得進入 plugin 安裝目錄） | **不中止，更不得改為憑記憶作答。** `python3` 與 `jq` 同樣走 Bash、同樣被擋，**退路是原生 `Read`／`Grep` 工具**——它們不受 Bash 沙箱的工作目錄限制，實測在預設權限下可正常讀取 plugin 目錄：<br>・`tags_summary.json`（約 90 KB）→ 整檔 `Read`（本 skill 本來就要跨 tag 排序，整檔屬正當用法）<br>・`reference/索引/設備條文索引.md` → 以 **Grep** 取所需設備列<br>・`corpus/命題頻率分析.md` → 直接 `Read`<br>成本較高但結果正確；並向使用者說明「本次改用較慢的讀取方式，可依 README 設定 `additionalDirectories` 與 `allow` 加速」 |
 | 無 `progress.json` | 照常產出計畫（全部未完成起步） |
 | 使用者不確定考試日期 | 以推算之預設值（下一個六月的第一個週末）暫排，標注「以考選部公告為準」，不重複催問 |
 | 使用者不要存檔 | 對話中呈現，不寫檔 |
