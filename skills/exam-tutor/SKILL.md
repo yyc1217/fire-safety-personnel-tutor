@@ -47,16 +47,18 @@ allowed-tools:
 |------|----------|-----|
 | `corpus/tags_index.json` | **一律**取單鍵，不整檔輸出（約 370 KB） | jq 可用時 `jq '.by_equipment["緊急照明設備"]' corpus/tags_index.json`；不可用時改用 **Grep 工具**以 tag 名定位再讀該段 |
 | `corpus/tags_summary.json` | **單一 tag 的頻率**優先用 jq 取單鍵（省 token）；**jq 不可用時整檔 `Read` 亦可**（約 90 KB，讀得完）；**需要跨 tag 排序時**本來就整檔載入 | `jq '.by_equipment["緊急照明設備"]' corpus/tags_summary.json`；退化時 `Read corpus/tags_summary.json` |
-| `reference/索引/設備條文索引.md` | **單一設備**用 **Grep 工具**取該設備列（`output_mode: content`） | pattern `緊急照明設備`、path 該索引檔 |
-| `statutes/` 之法規 md | **先用 Grep 工具（`output_mode: content`、`-n: true`）定位條號行號，再 Read 帶 offset／limit 只讀該區段**；勿整檔 Read | pattern `^## 第 17[5-9] 條` → 取得行號 → Read offset=該行 limit=60 |
+| `reference/索引/設備條文索引.md` | **單一設備**取該設備列即可，勿整檔 `Read`（原生 `Grep` 工具或 shell `grep` 皆可） | Grep `pattern: 緊急照明設備`、path 該索引檔 |
+| `statutes/` 之法規 md | **先定位條號行號，再 Read 帶 offset／limit 只讀該區段**；勿整檔 Read | Grep `pattern: ^## 第 17[5-9] 條`、`-n: true` → 取得行號 → Read offset=該行 limit=60 |
 
-**`statutes/2_01_各類場所消防安全設備設置標準.md` 特別注意**：該檔 4,239 行，**超過 Read 工具預設 2,000 行上限**，整檔 Read 會被截斷且靜默取到不完整內容（可能漏掉後半部條文而誤判「查無此條」）。取該檔條文**必須**走 Grep → Read offset 流程。其餘法規 md 均在上限內，但仍以精準取用為原則。
+**`statutes/2_01_各類場所消防安全設備設置標準.md` 特別注意**：該檔 4,239 行，**超過 Read 工具預設 2,000 行上限**，整檔 Read 會被截斷且靜默取到不完整內容（可能漏掉後半部條文而誤判「查無此條」）。取該檔條文**必須**走「定位行號 → Read 帶 offset」流程（用哪種方式定位不限）。其餘法規 md 均在上限內，但仍以精準取用為原則。
 
-> 本節的定位與取段一律用 **Grep 工具**（本 skill 之 `allowed-tools` 已含 `Grep`），**不是** shell 的 `grep` 指令。
-> 兩者差別不在指令 allowlist——`grep` 屬 Claude Code 內建唯讀指令，本來就不必列（見 `README.md`）——而在**目錄邊界**：
-> 經由 Bash 執行的指令（`grep`／`jq`／`python3` 皆同）受工作目錄限制，而題庫與法條都在 **plugin 安裝目錄**底下，
-> 使用者未設 `additionalDirectories` 時會被擋；原生 `Grep`／`Read` 工具不受此限，實測在預設權限下可直接讀取。
-> **這也是為什麼 Grep／Read 是主要手段、jq 只是加速路徑。**
+> **定位手段不限，「只取所需片段」才是規範。** 原生 `Grep` 工具與 shell 的 `grep` 都算數——真正的要求是
+> 上表那件事：不要整檔載入。（本節原本規定「一律用 Grep 工具、不得用 shell `grep`」，三輪實測 Grep 工具
+> 使用次數皆為 0，措辭加強兩次都沒推動；規範與實際行為長期背離比「用哪個工具」更糟，故改為結果導向。）
+>
+> **但兩條路的代價不同，能選就選原生工具**：`Grep`／`Read` 不需額外授權、也不受 Bash 的工作目錄限制；
+> 經由 Bash 執行的 `grep`／`jq`／`python3` 每次都要使用者點同意，**被拒或環境受限時整條路會斷**——
+> 屆時一律照「取不到時的退化」改用原生 `Grep`／`Read`，**絕不可因此放棄 corpus／statutes 改為憑記憶出題**。
 
 **例外——判準是「需不需要比較不同 tag」**：要比較高低、排序、取前 N 名，就得看得到全部 tag，整檔載入 `tags_summary.json` 是正當的；只查某一個 tag 的數字，就取單鍵。
 
