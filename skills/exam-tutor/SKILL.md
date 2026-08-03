@@ -71,7 +71,15 @@ corpus/md/<等別>/<年>/<科目代碼>_<科目名>.md
 | `corpus/tags_index.json` | **一律**取單鍵，不整檔輸出（約 370 KB） | jq 可用時 `jq '.by_equipment["緊急照明設備"]' corpus/tags_index.json`；不可用時改用 **Grep 工具**以 tag 名定位再讀該段 |
 | `corpus/tags_summary.json` | **單一 tag 的頻率**優先用 jq 取單鍵（省 token）；**jq 不可用時整檔 `Read` 亦可**（約 90 KB，讀得完）；**需要跨 tag 排序時**本來就整檔載入 | `jq '.by_equipment["緊急照明設備"]' corpus/tags_summary.json`；退化時 `Read corpus/tags_summary.json` |
 | `reference/索引/設備條文索引.md` | **單一設備**取該設備列即可，勿整檔 `Read`（原生 `Grep` 工具或 shell `grep` 皆可） | Grep `pattern: 緊急照明設備`、path 該索引檔 |
-| `statutes/` 之法規 md | **先定位條號行號，再 Read 帶 offset／limit 只讀該區段**；勿整檔 Read | Grep `pattern: ^## 第 17[5-9] 條`、`-n: true` → 取得行號 → Read offset=該行 limit=60 |
+| `statutes/` 之法規 md | **先定位條號行號，再 Read 帶 offset／limit 只讀該區段**；勿整檔 Read。**`limit` 由下一條的行號算出，不得憑感覺估**，見下方「條文區段的邊界」 | Grep `pattern: ^## 第 17[5-9] 條`、`-n: true` → 取得行號 → Read offset=該行 limit=（下一條行號－該行） |
+
+#### 條文區段的邊界（`limit` 怎麼定）
+
+**Grep 時把要讀的條與它的下一條一起抓，`limit` ＝兩者行號之差。** 條文長度差距很大（同一部法規裡有 3 行的，也有 20 行以上的），憑感覺給 `limit` 會**靜默截斷**——讀到前幾款就以為讀完了，是出錯題與答案不全的直接原因。
+
+例：要讀設置標準 §175–§179，Grep `pattern: ^## 第 1(7[5-9]|80) 條`（**多抓一條 §180 當右邊界**）得到 §175 在 3022 行、§180 在 3069 行 → `Read offset=3022 limit=47`。若只抓 §175–§179 而給 `limit=40`，會停在 3061 行，**§179 的六款只讀到四款**——漏掉第五款（工作場所中設有固定機械或裝置之部分）與第六款（洗手間、浴室、盥洗室、儲藏室或機械室），而這兩款正是免設緊急照明設備的常考處所。
+
+單條同理：Grep `pattern: ^## 第 (179|180) 條` → 3050 與 3069 → `Read offset=3050 limit=19`。**檔案最後一條沒有下一條**，此時才回退到給一個寬鬆 `limit`。
 
 **`statutes/2_01_各類場所消防安全設備設置標準.md` 特別注意**：該檔 4,239 行，**超過 Read 工具預設 2,000 行上限**，整檔 Read 會被截斷且靜默取到不完整內容（可能漏掉後半部條文而誤判「查無此條」）。取該檔條文**必須**走「定位行號 → Read 帶 offset」流程（用哪種方式定位不限）。其餘法規 md 均在上限內，但仍以精準取用為原則。
 

@@ -82,7 +82,7 @@ allowed-tools:
 |------|------|
 | `reference/對照表/` 不存在 | 全部改即時生成並說明 |
 | **`jq` 未安裝**（`command not found`） | 不中止：改以 `python3 -c "import json;d=json.load(open('corpus/tags_summary.json'));print(json.dumps(d[<鍵>],ensure_ascii=False))"` 取單鍵 |
-| **`jq`／`python3`／shell 指令對 plugin 目錄被權限擋下**（權限詢問被拒、或未設 `additionalDirectories` 而不得進入 plugin 安裝目錄） | **不中止，更不得改為憑記憶作答。** `python3` 與 `jq` 同樣走 Bash、同樣被擋，**退路是原生 `Read`／`Grep` 工具**——它們不受 Bash 沙箱的工作目錄限制，實測在預設權限下可正常讀取 plugin 目錄：<br>・`reference/對照表/`、`statutes/` 之 md → 直接 `Read`；大檔（如 `2_01`，4,239 行）先以 **Grep** 定位條號行號再 `Read` 帶 offset／limit<br>・`tags_summary.json`（約 90 KB）→ 整檔 `Read`<br>・`progress.json` 之 `weak_tally` 在使用者 `data_dir`、不受 plugin 目錄邊界影響，照常 `Read`<br>成本較高但結果正確；並向使用者說明「本次改用較慢的讀取方式，可依 README 設定 `additionalDirectories` 與 `allow` 加速」 |
+| **`jq`／`python3`／shell 指令對 plugin 目錄被權限擋下**（權限詢問被拒、或未設 `additionalDirectories` 而不得進入 plugin 安裝目錄） | **不中止，更不得改為憑記憶作答。** `python3` 與 `jq` 同樣走 Bash、同樣被擋，**退路是原生 `Read`／`Grep` 工具**——它們不受 Bash 沙箱的工作目錄限制，實測在預設權限下可正常讀取 plugin 目錄：<br>・`reference/對照表/`、`statutes/` 之 md → 直接 `Read`；大檔（如 `2_01`，4,239 行）先以 **Grep** 定位條號行號再 `Read` 帶 offset／limit（**Grep 時把下一條也一起抓，`limit` ＝兩者行號之差**；憑感覺給 `limit` 會靜默截斷條文、只讀到前幾款）<br>・`tags_summary.json`（約 90 KB）→ 整檔 `Read`<br>・`progress.json` 之 `weak_tally` 在使用者 `data_dir`、不受 plugin 目錄邊界影響，照常 `Read`<br>成本較高但結果正確；並向使用者說明「本次改用較慢的讀取方式，可依 README 設定 `additionalDirectories` 與 `allow` 加速」 |
 | 目錄存在但該主題**無對應內建表**（常態） | 懶人包來源 (3) 略過：必背內容改自 statutes 即時擷取，狀態列標「無對應內建對照表」、不列 `出處：` 欄；`/fs-compare` 則走「即時生成」路徑（§1.2） |
 | statutes 缺相關法規且網路抓不到 | 明示缺漏範圍，僅整理可查證部分 |
 | 無網路 | 照常整理，標注「未經線上核對，以本地版本日期為準」 |
