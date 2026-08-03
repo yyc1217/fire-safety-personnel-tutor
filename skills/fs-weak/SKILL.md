@@ -10,7 +10,9 @@ allowed-tools:
   - Bash(jq *)
   - Bash(date *)
 ---
-使用 exam-tutor skill 進入「弱點複習模式」——**先讀 `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/弱點複習.md`**（該檔為本模式規範唯一真相），再依其執行：先依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` 載入使用者設定與 `progress.json` 之 `weak_tally`，按弱點嚴重程度選題重考。**開始選題前先跑「續作偵測」**：`weakness_tracking = "auto"` 時讀同檔之 `pending`，上次有沒批改完的題就先問要接續或重開（規則見同一份 spec 之「pending（未批改斷點）」）；成績與弱點**每題批改完立刻寫**，不累到輪末。範圍：$ARGUMENTS
+使用 exam-tutor skill 進入「弱點複習模式」——**先讀 `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/弱點複習.md`**（該檔為本模式規範唯一真相），再依其執行：先依「設定解析順序」載入使用者設定（下列 plugin 設定 → `<data_dir>/config.json` → 初次詢問），讀 `progress.json` 之 `weak_tally`，按弱點嚴重程度選題重考。**開始選題前先跑「續作偵測」**：`weakness_tracking = "auto"` 時讀同檔之 `pending`，上次有沒批改完的題就先問要接續或重開；成績與弱點**每題批改完立刻寫**，不累到輪末。範圍：$ARGUMENTS
+
+**`user-config-spec.md` 不為了取設定而 Read**——解析順序已寫在本檔，選題階段不需要該規格檔。但 **`pending` 非空時必須讀**該檔之「pending（未批改斷點）」與鐵則六：續作提示能顯示什麼、哪些欄位一律不得顯示，以該檔為準。其餘情形（批改後要寫 `progress.json`、`progress.json` 結構不符預期需查遷移規則）才讀（見 exam-tutor SKILL.md 之「使用者設定」）。
 
 ---
 
