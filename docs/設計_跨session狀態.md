@@ -19,10 +19,10 @@
 
 1. **未批改的那一題完全沒落地**——「先問、後等、再解」的等待狀態只存在對話脈絡。關掉視窗、`/clear`、脈絡壓縮、雲端 session 容器回收之後，新對話無從得知「上次問到哪一題、題目原文是什麼」。（改版前全 repo 只有兩處出現 `session`，且都指「本次對話內交棒」。）
 2. **寫入時機是輪末而非逐題，且文件互相打架**——`exam-tutor/SKILL.md` 說批改時寫 `coverage`，`modes/弱點複習.md` 卻說「結束時總結；auto 模式寫回 progress.json」。一輪 5 題做到第 4 題中斷即整輪歸零。
-3. **併發覆寫**——`progress.json` 單一 JSON 整檔重寫，無 lock、無 append-only、寫前不重讀。兩個視窗（或主對話與 `/出考卷` 的 fork 子代理）同時寫，後者整檔蓋掉前者。
+3. **併發覆寫**——`progress.json` 單一 JSON 整檔重寫，無 lock、無 append-only、寫前不重讀。兩個視窗（或主對話與 `/fs-mock` 的 fork 子代理）同時寫，後者整檔蓋掉前者。
 4. **沒有 `schema_version`**——spec 已有兩條遷移規則（`done`→`asked`、`total`→`points`），全靠「看到沒有 `asked` 欄就猜是舊檔」這種啟發式判斷。
 5. **`attempts` 無界成長且要求整檔載入**——不像 `tags_index.json` 有「只取單鍵、勿整檔載入」的鐵則。練一年幾千題後，每個新對話一開場就吃掉大量脈絡。
-6. **`/出考卷` 的產出不落地**——`context: fork` 的子代理看不到主對話、也寫不回 `progress.json`，5–8 分鐘產的整卷關掉就沒了。
+6. **`/fs-mock` 的產出不落地**——`context: fork` 的子代理看不到主對話、也寫不回 `progress.json`，5–8 分鐘產的整卷關掉就沒了。
 7. **`notes` 模式跨對話靠使用者手動回貼**——`notes/` 本來就在 `data_dir` 底下，其實可以自動讀回。
 8. **雲端／遠端 session 根本不跨**——`~/.fire-safety-tutor` 在 Claude Code on the web 的容器裡是 ephemeral。
 9. **寫入被拒絕時沒有規範**——「優雅退場」表列了 jq 缺席、PDF 缺失、無網路，就是沒列「使用者按了拒絕」，結果是使用者以為有記錄、實際沒有。
@@ -73,7 +73,7 @@
 
 ## 尚未處理（後續版本）
 
-- **`/出考卷` 產出落地**：存 `<data_dir>/exams/`，並提供整卷回寫 `coverage` 的入口（原盤點第 6 項）。
+- **`/fs-mock` 產出落地**：存 `<data_dir>/exams/`，並提供整卷回寫 `coverage` 的入口（原盤點第 6 項）。
 - **`notes` 模式自動讀回**：弱點複習改為先 glob `<data_dir>/notes/*弱點筆記.md`，讀不到才請使用者提供（第 7 項）。
 - **README 補「跨裝置／雲端使用」**：`data_dir` 指向雲端同步目錄的作法，以及 Claude Code on the web 為 ephemeral 容器、進度不保留的提醒（第 8 項）。
 - **CI 檢查**：`progress.json` 欄位在 spec 與各 SKILL.md 間的一致性、防止「結束時才寫回」這類措辭回流。

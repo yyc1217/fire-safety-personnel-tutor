@@ -1,6 +1,6 @@
 ---
-name: 備考設定
-description: 設定或修改應考等別（師/士）、弱點記錄模式與資料目錄
+name: fs-setup
+description: 【備考設定】設定或修改應考等別（師/士）、弱點記錄模式與資料目錄
 argument-hint: [留空即互動式設定；或直接指定要改的項目，如：等別 士、記錄模式 none]
 disable-model-invocation: true
 allowed-tools:

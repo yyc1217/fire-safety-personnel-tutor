@@ -1,6 +1,6 @@
 ---
-name: 讀書計畫
-description: 主動規劃讀書計畫：初次使用先確認考試日期（預設每年六月第一個週末），討論進度分配後以設備為主體排研讀順序
+name: fs-plan
+description: 【讀書計畫】主動規劃讀書計畫：初次使用先確認考試日期（預設每年六月第一個週末），討論進度分配後以設備為主體排研讀順序
 argument-hint: [可附考試日期，如：116-06-05；留空則主動推算下一個六月的第一個週末供確認]
 disable-model-invocation: true
 allowed-tools:

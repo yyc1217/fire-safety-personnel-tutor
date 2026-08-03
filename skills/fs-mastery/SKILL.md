@@ -1,6 +1,6 @@
 ---
-name: 掌握度
-description: 掌握度視覺化：把本機作答紀錄畫成各科目／主題／設備／法條的熟悉度文字條圖表，快速看出哪裡強、哪裡還沒碰
+name: fs-mastery
+description: 【掌握度】掌握度視覺化：把本機作答紀錄畫成各科目／主題／設備／法條的熟悉度文字條圖表，快速看出哪裡強、哪裡還沒碰
 argument-hint: [可指定範圍，如「火災學」「水系統」「消防法規」或某設備]
 disable-model-invocation: true
 allowed-tools:

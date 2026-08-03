@@ -1,6 +1,6 @@
 ---
-name: 對照表
-description: 產生跨法規對照表：把不同法規中相似的規定（期限/面積/距離/罰則）並列比較
+name: fs-compare
+description: 【對照表】產生跨法規對照表：把不同法規中相似的規定（期限/面積/距離/罰則）並列比較
 argument-hint: [主題，如：檢修申報、各設備緊急電源；留空列出內建對照表清單]
 disable-model-invocation: true
 allowed-tools:

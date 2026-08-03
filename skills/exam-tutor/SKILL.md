@@ -53,7 +53,7 @@ allowed-tools:
 
 `weakness_tracking = "auto"` 時，讀 `<data_dir>/progress.json` 之 `pending`（未批改斷點），依
 `user-config-spec.md`「pending（未批改斷點）」節之**續作偵測**六條處理：有效斷點 → 報告上次問到哪一題、
-本輪完成幾題，並給「接續作答／丟掉重開／先丟著改做別的」三選項（**不要主動推薦 `/掌握度`**——
+本輪完成幾題，並給「接續作答／丟掉重開／先丟著改做別的」三選項（**不要主動推薦 `/fs-mastery`**——
 它按條文列覆蓋度，等於繞道洩掉未批改題的考點；使用者自己要看，先告知風險再由他決定），
 接續時把 `pending.items[].question_text`
 **原樣貼回**；逾 14 天預設重開；`pending` 之設備／題目不是本對話出的（或 `session_id` 不同且未滿 30 分鐘）
@@ -136,12 +136,12 @@ allowed-tools:
    - 一輪多題時，輪末合計並換算百分比供參考。
 3. 給正確答案時逐步解釋，**引用相關法條並呈現全文，嚴格遵循「條、項、款、目」階層格式**（取自 `statutes/`，並標注法規版本日期）。
 4. **正解與講評之每一個論點都附法源出處**（法規名＋條號）供使用者查證；無法源之計算推導或實務見解明確標注「非法源：實務見解／計算推導」；延伸知識題標注「延伸知識（非法規條文）」。
-5. **記錄內容覆蓋度（`weakness_tracking = "auto"` 時）**：**每題批改完就地寫入，不得累積到一輪結束**（見 `user-config-spec.md`「寫入時機與併發」）——`attempts.jsonl` append 一行（獨立一次、必寫），`weak_tally`、`coverage.done`、自 `pending.items` 移除該題、成績記入 `pending.round.scored` 則**併成同一次 `progress.json` 寫入**（不得拆成多次）；同時判定使用者本題擬答**已展現掌握之內容點**，累積寫入 `progress.json` 之 `coverage`（schema 見 `user-config-spec.md`），供 `/掌握度` 計算覆蓋度：
-   - **法條題**：批改時模型正在讀該條全文，就地把該條**切成「獨立要點」**（**語意單位，非項／款數**）：一款列舉多個獨立事項時逐項計為要點——例如設置標準第 14 條第一項第一款列甲類場所、地下建築物、幼兒園…即為多個要點。切分後**把全部要點名稱依序存入 `coverage["by_article:<條號>"].points`**（含尚未掌握者），將擬答**正確涵蓋之要點**加入同項 `done`（字串取自 `points`），`total`＝`len(points)`（供 `/掌握度` 呈現時只讀相除、不重掃全文）。只答其中一項不得算整條掌握（如只答「甲類場所」→ done 1／total 8）。**該條已有 `points` 時沿用既存切分與要點名稱**（只增補 `done`，不得重切改 `points`／`total`——否則各次批改分母漂移；修法時才重切並重置該條）。**舊檔該條有 `total` 無 `points`** → 依 `user-config-spec.md` 遷移規則：重切寫入 `points`、更新 `total`，既存 `done` 依語意對映至新要點名（無對應者移除）。
+5. **記錄內容覆蓋度（`weakness_tracking = "auto"` 時）**：**每題批改完就地寫入，不得累積到一輪結束**（見 `user-config-spec.md`「寫入時機與併發」）——`attempts.jsonl` append 一行（獨立一次、必寫），`weak_tally`、`coverage.done`、自 `pending.items` 移除該題、成績記入 `pending.round.scored` 則**併成同一次 `progress.json` 寫入**（不得拆成多次）；同時判定使用者本題擬答**已展現掌握之內容點**，累積寫入 `progress.json` 之 `coverage`（schema 見 `user-config-spec.md`），供 `/fs-mastery` 計算覆蓋度：
+   - **法條題**：批改時模型正在讀該條全文，就地把該條**切成「獨立要點」**（**語意單位，非項／款數**）：一款列舉多個獨立事項時逐項計為要點——例如設置標準第 14 條第一項第一款列甲類場所、地下建築物、幼兒園…即為多個要點。切分後**把全部要點名稱依序存入 `coverage["by_article:<條號>"].points`**（含尚未掌握者），將擬答**正確涵蓋之要點**加入同項 `done`（字串取自 `points`），`total`＝`len(points)`（供 `/fs-mastery` 呈現時只讀相除、不重掃全文）。只答其中一項不得算整條掌握（如只答「甲類場所」→ done 1／total 8）。**該條已有 `points` 時沿用既存切分與要點名稱**（只增補 `done`，不得重切改 `points`／`total`——否則各次批改分母漂移；修法時才重切並重置該條）。**舊檔該條有 `total` 無 `points`** → 依 `user-config-spec.md` 遷移規則：重切寫入 `points`、更新 `total`，既存 `done` 依語意對映至新要點名（無對應者移除）。
    - **火災學主題題**：擬答正確展現某知識點 → 加入 `coverage["by_topic:<主題>"].done`（知識點清單與分母＝`reference/索引/火災學主題知識點索引.md`，分母固定可不存 `total`）。
    - **設備題**：涵蓋某設備之條文 → 加入 `coverage["<設備>"].done`（既有格式，分母＝`reference/索引/設備條文索引.md` 該設備條文＋延伸知識，可不存 `total`）。
    - **key 與 `done` 命名須穩定**（跨次批改才對得上、去重才有效）：`by_article:` 之條號短名**對齊 `corpus/tags_index.json` 維度**——增訂條文用「第 N 條之 M」（如 `by_article:設置標準第111條之1`，**不用** `111-1`；`reference/索引/法規條文清單索引.md` 之條號 `N-M` 即「第 N 條之 M」）；檢修基準以章為單位，key＝`by_article:檢修基準第X章`（中文數字，與清單索引一致）。`done` 之要點／知識點名稱：火災學取知識點索引該條目之**開頭關鍵語**、法條要點沿用該條首次切分時所定短名——同一內容點一律沿用既有字串，不得換寫法。
-   - **申論題**：判定「已掌握」以**擬答內容**對照該內容點之學理／法規要旨，非僅結論正確。**選擇題**：無擬答可對照，**答對即把該題所考之內容點**（依題目 tags 與所涉條文判定，通常 1 點）**計入 `done`**，讓 `/抽考` 等測驗練習也能累積覆蓋度。同一內容點重複掌握不重複計入（`done` 去重）。答錯或未涵蓋則不加入（維持該點 0%）。
+   - **申論題**：判定「已掌握」以**擬答內容**對照該內容點之學理／法規要旨，非僅結論正確。**選擇題**：無擬答可對照，**答對即把該題所考之內容點**（依題目 tags 與所涉條文判定，通常 1 點）**計入 `done`**，讓 `/fs-quiz` 等測驗練習也能累積覆蓋度。同一內容點重複掌握不重複計入（`done` 去重）。答錯或未涵蓋則不加入（維持該點 0%）。
 
 ## 模式路由（進入前必先讀對應模式檔）
 
@@ -151,11 +151,11 @@ allowed-tools:
 
 | 模式 | 觸發語／指令 | 讀這個檔 |
 |------|--------------|----------|
-| 快速抽考 | 「抽考」「快考幾題」／`/抽考` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/快速抽考.md` |
-| 弱點複習 | 「弱點複習」「複習我常錯的」／`/弱點複習` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/弱點複習.md` |
-| 掌握度視覺化 | 「掌握度」「熟悉度」「畫一下我的進度」／`/掌握度` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/掌握度視覺化.md` |
-| 申論猜題＋擬答 | 「申論猜題」「這個考點的擬答」／`/申論猜題` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/申論猜題擬答.md` |
-| 整卷模擬考 | 「出考卷」「出一份模擬考」／`/出考卷` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/整卷模擬考.md` |
+| 快速抽考 | 「抽考」「快考幾題」／`/fs-quiz` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/快速抽考.md` |
+| 弱點複習 | 「弱點複習」「複習我常錯的」／`/fs-weak` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/弱點複習.md` |
+| 掌握度視覺化 | 「掌握度」「熟悉度」「畫一下我的進度」／`/fs-mastery` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/掌握度視覺化.md` |
+| 申論猜題＋擬答 | 「申論猜題」「這個考點的擬答」／`/fs-essay` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/申論猜題擬答.md` |
+| 整卷模擬考 | 「出考卷」「出一份模擬考」／`/fs-mock` | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/整卷模擬考.md` |
 | 系統複習 | 「複習」「帶我看水系統的規定」「整理警報系統」 | `${CLAUDE_PLUGIN_ROOT}/skills/exam-tutor/modes/系統複習.md` |
 
 本檔（SKILL.md）之角色、資料來源、出題鐵則、法條時效核對與護欄、法條缺漏處理、
@@ -203,7 +203,7 @@ allowed-tools:
 2. `auto`：**出題時**寫斷點（`pending`／`asked_ids`／`coverage.asked`）、**每題批改完**寫成績（`attempts.jsonl` append 一行，更新 `weak_tally`／`coverage.done`）；弱點複習、「主動提議下一個設備」與跨對話續作據此運作。**逐題落地，不累到輪末。**
 3. `notes`：每次練習結束產出錯題與弱點筆記（**格式一律依 `reference/輸出格式/弱點筆記格式.md`**，確保日後可讀回選題），依使用者偏好存入 `<data_dir>/notes/` 或僅顯示。
 4. `none`：完全不記錄、不寫檔、不再詢問。
-5. 使用者可隨時以 `/備考設定` 重跑設定。
+5. 使用者可隨時以 `/fs-setup` 重跑設定。
 
 ## 優雅退場
 
