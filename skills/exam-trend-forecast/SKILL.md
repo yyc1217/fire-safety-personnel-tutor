@@ -42,7 +42,8 @@ allowed-tools:
 | `corpus/tags_summary.json` | 各 tag 之總數、師/士數、**逐年次數**（by_year；另有師/士分層之 by_year_師／by_year_士，供「該等別 × 近 N 年」交叉統計）；維度：by_system／by_equipment／by_law／by_article／by_topic／by_flag／by_type | 加權頻率、趨勢統計 | **小檔，可整檔載入** |
 | `corpus/tags_cycles.json` | 各 tag **依等別→科目**之出題週期型態（結構 `{等別:{科目:{維度:{tag:…}}}}`，**各科獨立不跨科**）：逐年序列、平均再現間隔、距今年數、型態分類（常年型／**退役常年型**／新興熱點／週期到期／冷卻中／一次性／偶發） | **週期型態維度**（見工作流程 1-1） | 小檔，可整檔載入 |
 | `corpus/命題頻率分析.md`、`corpus/命題週期分析.md` | 人可讀之頻率報告、週期型態報告（含未考缺口清單） | 快速總覽 | 直接閱讀 |
-| `corpus/tags_index.json` | 各 tag → **題目參照清單**（`等別/年/科目#題號`） | 取某 tag 的題目 | **勿整檔載入**（約 370 KB）；用 jq 取單鍵：`jq '.by_article["設置標準第12條"]' corpus/tags_index.json` |
+| `corpus/tags_index.json` | 各 tag → **題目參照清單**（`等別/年/科目#題號`） | 取某 tag 的題目 | **勿整檔載入**（約 370 KB）；用 jq 取單鍵：`jq '.by_article["設置標準第12條"]' corpus/tags_index.json`。由參照取該題不必查 `index.json`：Glob `corpus/md/<等別>/<年>/<科目代碼>_*.md`，再 Grep 題目標題（測驗 `^### 第 27 題`、申論 `^### 第一題`） |
+| `statutes/` 之法規 md | 條文全文 | 一問一答之答案區塊引用條文 | **先 Grep 定位條號行號再 `Read` 帶 offset／limit**；**`limit` 由下一條的行號算出，不得憑感覺估**——Grep 時把要讀的條與**下一條**一起抓（例 `^## 第 1(7[5-9]|80) 條`），`limit` ＝兩者行號之差。條文長度差距很大（3 行到 20 行以上），估錯會**靜默截斷**：只讀到前幾款卻以為讀完，答案區塊就會漏列。`2_01`（4,239 行）超過 Read 上限，**必須**走此流程 |
 
 > 索引由 `scripts/rebuild_index.py`（反建索引）與 `scripts/analyze_corpus.py`（產生 summary 與報告）維護；分類以各題 inline `🏷️` 標籤為唯一真相。系統維度＝設備師 4 系統考科（水／化學／警報／避難系統）。
 
