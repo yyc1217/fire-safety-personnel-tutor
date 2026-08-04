@@ -516,6 +516,58 @@ def check_format_rules() -> None:
 
 
 # --------------------------------------------------------------------------
+# skill 直接指定行號讀取 user-config-spec 的寫入 schema，區段位移就會讀錯
+# --------------------------------------------------------------------------
+# 只認「同一行同時出現 user-config-spec 與 offset/limit」者，避免誤抓
+# 同一份 SKILL.md 裡談 statutes 條文區段的 offset 範例
+SPEC_RANGE_REF = re.compile(r"offset=(\d+)\s+limit=(\d+)")
+
+
+def check_progress_spec_range() -> None:
+    """skill 引用之 user-config-spec.md 寫入 schema 行號須與實際區段相符。"""
+    spec = ROOT / "reference" / "user-config-spec.md"
+    if not spec.exists():
+        err("reference/user-config-spec.md 不存在")
+        return
+
+    lines = read(spec).splitlines()
+    start = end = None
+    for i, line in enumerate(lines, 1):
+        if line.startswith("## progress.json"):
+            start = i
+        elif start is not None and line.startswith("## 弱點筆記格式"):
+            end = i - 1
+            break
+    if start is None or end is None:
+        err(
+            "user-config-spec.md 找不到寫入 schema 區段的邊界標題"
+            "（`## progress.json` … `## 弱點筆記格式`）；skill 以行號取用該段，請同步修正"
+        )
+        return
+
+    expect = (start, end - start + 1)
+    cited = 0
+    for f in md_files(["skills"]):
+        for lineno, line in enumerate(read(f).splitlines(), 1):
+            if "user-config-spec" not in line:
+                continue
+            for m in SPEC_RANGE_REF.finditer(line):
+                cited += 1
+                got = (int(m.group(1)), int(m.group(2)))
+                if got != expect:
+                    err(
+                        f"{rel(f)}:{lineno} 指定的 user-config-spec 讀取範圍已失效："
+                        f"寫 offset={got[0]} limit={got[1]}，實際寫入 schema 區段為第 {expect[0]}–{end} 行"
+                        f"（offset={expect[0]} limit={expect[1]}）"
+                    )
+    if not cited:
+        warn(
+            "沒有任何 skill 以行號引用 user-config-spec 的寫入 schema 區段"
+            "（若已改為其他取用方式，本檢查可移除）"
+        )
+
+
+# --------------------------------------------------------------------------
 CHECKS = {
     "manifests": check_manifests,
     "skills": check_skills,
@@ -527,6 +579,7 @@ CHECKS = {
     "links": check_links,
     "plugin-paths": check_plugin_paths,
     "format-rules": check_format_rules,
+    "progress-spec-range": check_progress_spec_range,
 }
 
 
