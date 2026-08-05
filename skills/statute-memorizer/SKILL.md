@@ -24,7 +24,7 @@ allowed-tools:
 | 設備條文索引 | `${CLAUDE_PLUGIN_ROOT}/reference/索引/設備條文索引.md` | 依設備找相關條文（「項目」欄＝條文目的） |
 | 法條全文 | `${CLAUDE_PLUGIN_ROOT}/statutes/`（入口：`statutes/index.md`） | 即時生成與數字核對之唯一本地來源 |
 | 標籤索引 | `corpus/tags_summary.json`（可整檔載入） | 判斷主題出題頻率，決定整理的詳略 |
-| 使用者設定 | 依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md` | 等別影響取材範圍；筆記保存位置 |
+| 使用者設定 | 依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md`（懶人包要讀 `progress.json` 的 `weak_tally` 時，直接 `Read` 該檔 `offset=87 limit=139` 一次取足，**別先 Grep 定位**） | 等別影響取材範圍；筆記保存位置 |
 
 路徑一律以 `${CLAUDE_PLUGIN_ROOT}` 解析；對 plugin 目錄一律**唯讀**，產出只寫入使用者 `data_dir`。
 

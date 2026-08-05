@@ -23,6 +23,26 @@
 
 # 版本紀錄
 
+## [1.3.1] - 2026-08-03 — 1.3.0 的檢索規範擴及其餘 skill（#75）
+
+1.3.0 的四項修正只落在 `exam-tutor` 與三支 slash command skill 上。#75 盤查其餘 skill 後補齊兩處，
+**未引入任何新決策**，只把 1.3.0 已定的作法套到同樣需要的路徑上（故為 PATCH）。
+
+### 變更
+
+- **N3 擴及五處**：`study-planner`（讀 `coverage`／`weak_tally`）、`statute-memorizer` 與 `fs-cram`
+  （懶人包取 `weak_tally`）、`modes/掌握度視覺化.md`（`fs-mastery` 讀 `coverage`）、`fs-mock`
+  （讀 `weak_tally`、需 `q_id` 格式）——皆補上「直接 `Read` `user-config-spec.md` 之
+  `offset=87 limit=139` 一次取足，別先 Grep 定位」。1.3.0 新增的 CI 檢查 `progress-spec-range`
+  掃 `skills/` 全域，五處寫上後即自動納入看守。
+- **N2 補 `exam-trend-forecast`**：「索引與大檔取用原則」只存在於 `exam-tutor/SKILL.md`，而
+  `exam-trend-forecast` 是獨立頂層 skill、不繼承它——其猜題報告的答案區塊要引用 statutes 條文全文，
+  同樣會因估錯 `limit` 而**靜默截斷、漏列後幾款**（正確性問題）。資料來源表補上 statutes 一列
+  （`limit` ＝下一條行號之差、`2_01` 超過 Read 上限），並比照補上「由參照取題不必查 `index.json`」。
+- **不處理者及理由**（詳見 #75）：`exam-trend-forecast` 的 JSON schema 文件已完備且與實際結構相符
+  （已以 `jq` 核對）；其整檔載入 `tags_summary`＋`tags_cycles`（約 150 KB）屬跨 tag 排序之正當例外；
+  其兩段式上網為功能本身，不套用 1.3.0 的時效核對三條觸發條件。
+
 ## [1.3.0] - 2026-08-03 — 出題檢索成本：四項實測驅動的規範修正（#73）
 
 使用者回報 `/fs-quiz 緊急照明燈` 出題很慢，且體感是「卡住不動好幾分鐘」而非一直點權限同意。

@@ -24,7 +24,7 @@ allowed-tools:
 | 頻率報告 | `corpus/命題頻率分析.md` | 人可讀對照；tags_summary 缺失時之退化來源 |
 | 設備條文索引 | `${CLAUDE_PLUGIN_ROOT}/reference/索引/設備條文索引.md` | 設置標準／檢修基準之「設備單元」展開（每設備＝一單元，含條文清單） |
 | 內建對照表 | `reference/index.md`、`reference/對照表/` | 各單元的建議研讀素材連結 |
-| 使用者設定與進度 | 依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md`；`progress.json` 之 `coverage`／`weak_tally` | 等別、考試日期、每週時數；銜接已完成的出題覆蓋與弱點 |
+| 使用者設定與進度 | 依 `${CLAUDE_PLUGIN_ROOT}/reference/user-config-spec.md`（**要 `progress.json` 的 schema 時直接 `Read` 該檔 `offset=87 limit=139` 一次取足，別先 Grep 定位**）；`progress.json` 之 `coverage`／`weak_tally` | 等別、考試日期、每週時數；銜接已完成的出題覆蓋與弱點 |
 
 路徑一律以 `${CLAUDE_PLUGIN_ROOT}` 解析；plugin 目錄**唯讀**，計畫檔只寫入使用者 `data_dir`。
 
