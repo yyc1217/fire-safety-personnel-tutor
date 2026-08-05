@@ -568,6 +568,70 @@ def check_progress_spec_range() -> None:
 
 
 # --------------------------------------------------------------------------
+# 設備正規名詞彙：索引之「設備分類」欄須與 tags_index 之 by_equipment 鍵一致，
+# 否則正規化後以索引名查標籤會回 null，整個設備的題目都撈不到（issue #77）
+# --------------------------------------------------------------------------
+# 已裁定之正當例外，每一項都要有理由；新增例外前請先確認不是單純打錯字
+EQUIP_VOCAB_EXCEPTIONS = {
+    # 索引有、tags 無
+    "其他": "設置標準 §234 等不屬特定設備之條文，無對應 tag",
+    "配線": "檢修基準第 27 章，跨設備之共通檢修項目，非獨立設備",
+    # tags 有、索引無
+    "二氧化碳滅火設備": "與「二氧化碳及惰性氣體滅火設備」同屬設置標準第六節（§82–§97），"
+    "為 CO₂ 專題之標籤；索引以現行節名收錄，exam-tutor SKILL.md 規定兩鍵併查",
+}
+
+
+def check_equipment_vocab() -> None:
+    """設備條文索引之「設備分類」欄須與 tags_index 之 by_equipment 鍵一致。"""
+    idx = ROOT / "reference" / "索引" / "設備條文索引.md"
+    tags = ROOT / "corpus" / "tags_index.json"
+    if not idx.exists() or not tags.exists():
+        warn("設備條文索引或 tags_index.json 不存在，跳過設備詞彙比對")
+        return
+
+    in_index: set[str] = set()
+    for line in read(idx).splitlines():
+        cells = [c.strip() for c in line.split("|")]
+        # 資料列形如 `| 法源 | 條文 | 場所 | 設備分類 | 項目 |` → 去頭尾空字串後第 4 欄
+        if len(cells) < 7 or cells[1] in ("法源", "") or set(cells[1]) <= {"-"}:
+            continue
+        # 設備分類為 `-` 者是不屬特定設備之條文（如設置標準 §1 授權法源），非設備名
+        if cells[4] and not set(cells[4]) <= {"-"}:
+            in_index.add(cells[4])
+
+    try:
+        in_tags = set(json.loads(read(tags)).get("by_equipment", {}))
+    except Exception as e:  # noqa: BLE001
+        err(f"tags_index.json 無法解析：{e}")
+        return
+
+    if not in_index:
+        err("設備條文索引解析不到任何「設備分類」值（表格格式可能已變更）")
+        return
+
+    for name in sorted(in_index - in_tags - set(EQUIP_VOCAB_EXCEPTIONS)):
+        err(
+            f"設備條文索引之「{name}」在 corpus/tags_index.json 的 by_equipment 查不到——"
+            "依此名取標籤會回 null，該設備的題目一題都撈不到。"
+            "請更正索引用語，或在 EQUIP_VOCAB_EXCEPTIONS 附理由列為例外"
+        )
+    for name in sorted(in_tags - in_index - set(EQUIP_VOCAB_EXCEPTIONS)):
+        err(
+            f"tags_index 有 by_equipment「{name}」但設備條文索引無對應課綱列——"
+            "該設備有題目卻無出題順序可循。請補課綱列，"
+            "或在 EQUIP_VOCAB_EXCEPTIONS 附理由列為例外"
+        )
+    # 例外一旦被消化（兩邊都有或兩邊都無）就該移除，免得清單長年累積失效項目
+    for name in sorted(EQUIP_VOCAB_EXCEPTIONS):
+        if (name in in_index) == (name in in_tags):
+            warn(
+                f"EQUIP_VOCAB_EXCEPTIONS 的「{name}」已不再是落差"
+                f"（兩邊皆{'有' if name in in_index else '無'}），可從例外清單移除"
+            )
+
+
+# --------------------------------------------------------------------------
 CHECKS = {
     "manifests": check_manifests,
     "skills": check_skills,
@@ -580,6 +644,7 @@ CHECKS = {
     "plugin-paths": check_plugin_paths,
     "format-rules": check_format_rules,
     "progress-spec-range": check_progress_spec_range,
+    "equipment-vocab": check_equipment_vocab,
 }
 
 

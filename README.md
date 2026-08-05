@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-1.3.2-blue.svg)
+![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -118,7 +118,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 >
 > **按了「否」不會影響上課**，但該題就不會進進度檔，Claude 會當場告訴你這件事；下一題**還是會再問一次**（你可能只是那一次不想存）。連續拒絕兩次以上，它會改問「本輪都不要記錄嗎？」，你說了才會整輪不再嘗試——而且輪末仍會提醒你這輪都沒記錄。
 
-> ⏳ **關於等待時間**：`/fs-forecast` 採兩段式——第一段本地統計結果**很快就好**；之後詢問是否上網彙整近 12–24 個月官方修法／函令／時事，**同意才執行**、約需 5–8 分鐘。`/fs-essay` 與整卷 `/fs-mock` 屬重工作（自行命題並附解答），**約需 5–8 分鐘（實際視你的使用設定與網路環境而定）**，過程不是卡住，請耐心稍候。其餘快節奏功能（`/fs-quiz`、`/fs-compare` 等）則很快。
+> ⏳ **關於等待時間**：`/fs-forecast` 採兩段式——第一段本地統計結果**很快就好**；之後詢問是否上網彙整近 12–24 個月官方修法／函令／時事，**同意才執行**、約需 5–8 分鐘。`/fs-essay` 與整卷 `/fs-mock` 屬重工作（自行命題並附解答）：`/fs-essay` **約需 5–8 分鐘**、整卷 `/fs-mock` **約需 8–10 分鐘**（實際視你的使用設定與網路環境而定），過程不是卡住，請耐心稍候。其餘快節奏功能（`/fs-quiz`、`/fs-compare` 等）則很快。
 
 ## 目錄結構
 
