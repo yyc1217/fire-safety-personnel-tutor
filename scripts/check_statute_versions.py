@@ -69,7 +69,7 @@ def main():
     stale_only = "--stale-only" in sys.argv
     known = known_latest()
     rows = []
-    for path in sorted(STATUTES.glob("[12]_*.md")):
+    for path in sorted(STATUTES.glob("[12]_*/[12]_*.md")):
         raw, local = local_version(path)
         if local is None:
             status = "⚠️ 無法解析"
