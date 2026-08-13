@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-1.8.13-blue.svg)
+![Version](https://img.shields.io/badge/version-1.9.1-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -125,7 +125,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 ```
 ├── .claude-plugin/          # plugin 與 marketplace 定義
 ├── corpus/                  # 歷年考古題（md＋原卷 PDF＋標籤索引）
-├── statutes/                # 命題大綱法規現行全文 md
+├── statutes/                # 命題大綱法規現行全文（一部法規一個資料夾：md＋附表附圖＋原始檔案/）
 ├── reference/               # 內建資產：設備條文索引、8 張對照表、使用者設定規格、輸出格式範本
 ├── skills/                  # 五個功能 skill＋十個 slash command skill（各為 <名稱>/SKILL.md）
 │   └── exam-tutor/modes/    # exam-tutor 的六個互斥模式（按需載入，見 SKILL.md 模式路由）
@@ -144,7 +144,7 @@ claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-ma
 |------|------|------|
 | `corpus/pdf/` 歷屆試題與答案卷 | 考選部 | 政府公開資訊，依考選部網站使用規定 |
 | `docs/命題大綱/` 命題大綱 | 考選部 | 同上 |
-| `statutes/原始檔案/` 法規原文（PDF／DOC／ODT） | 全國法規資料庫、內政部消防署 | 法規原文不受著作權法保護（著作權法第 9 條） |
+| 各法規資料夾之 `原始檔案/` 法規原文（PDF／DOC／ODT） | 全國法規資料庫、內政部消防署 | 法規原文不受著作權法保護（著作權法第 9 條） |
 
 引用法條前請依主管機關公告之**現行版本**核對；本 repo 之 md 為整理當下的版本快照，各檔檔首附「📌 免責聲明」與版本日期。
 

@@ -16,6 +16,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MD_ROOT = ROOT / "corpus" / "md"
 STATUTES = ROOT / "statutes"
+
+
+def statute_path(fn):
+    """statutes/<法規資料夾>/<法規檔名>.md（資料夾名＝檔名去 .md）。"""
+    return STATUTES / fn[:-3] / fn
 TAG = "🏷️"
 
 # 條號標籤前綴 → statutes 檔（涵蓋 tags_index 全部 12 種前綴）
@@ -40,7 +45,7 @@ ART_HEAD_RE = re.compile(r"^##\s*第\s*(\d+(?:-\d+)?)\s*條")
 
 def load_statute_articles(fn):
     """回傳 {條號字串: 條文全文}。條號字串如 '199'、'111-1'。"""
-    path = STATUTES / fn
+    path = statute_path(fn)
     if not path.exists():
         return {}
     arts, cur, buf = {}, None, []
