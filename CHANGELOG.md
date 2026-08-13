@@ -14,6 +14,11 @@
 
 # 版本紀錄
 
+## [1.9.2] - 2026-08-13 — #98 review：公式大括號
+
+- `4_03` 附錄 2 之減光率換算式改用 `\lbrace`／`\rbrace`。GitHub 的 markdown → math 管線不保留跳脫用的反斜線，`\left\{` 送進 KaTeX 時變成 `\left{`，整式渲染失敗並顯示「Missing or unrecognized delimiter for \left」。
+- `.claude/CLAUDE.md` 公式格式規範新增第 8 點，記錄此限制與作法。
+
 ## [1.9.1] - 2026-08-13 — #91 review：4_06
 
 ### `4_06` 緊急廣播設備用揚聲器認可基準
