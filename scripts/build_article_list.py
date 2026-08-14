@@ -17,6 +17,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 STATUTES = ROOT / "statutes"
 
+
+def statute_path(fn):
+    """statutes/<法規資料夾>/<法規檔名>.md（資料夾名＝檔名去 .md）。"""
+    return STATUTES / fn[:-3] / fn
+
 # 法規名 → statutes 檔案（by_law 前 5 大）
 TOP5 = [
     ("各類場所消防安全設備設置標準", "2_01_各類場所消防安全設備設置標準.md"),
@@ -28,10 +33,14 @@ TOP5 = [
 ]
 
 ART = re.compile(r"^##\s*第\s*(\d+(?:-\d+)?)\s*條")          # 條（含 N-M＝之M）
-CHAP = re.compile(r"^##\s*第([〇零一二三四五六七八九十百]+)章")   # 章（檢修基準）
+CN = "〇零一二三四五六七八九十百"
+CHAP = re.compile(rf"^##\s*第([{CN}]+)章(之[{CN}]+)?")            # 章（檢修基準）
+CHAP_H1 = re.compile(rf"^#\s+.+　第([{CN}]+)章(之[{CN}]+)?")      # 拆章檔之 H1
 
 
-CHAP_H1 = re.compile(r"^#\s+.+　第([〇零一二三四五六七八九十百]+)章")   # 拆章檔之 H1
+def chap_label(m):
+    """第二十四章之一 這類增訂章之標籤（之N 在「章」之後，不在數字之後）。"""
+    return f"第{m.group(1)}章{m.group(2) or ''}"
 
 
 def parse(md: Path):
@@ -43,17 +52,15 @@ def parse(md: Path):
             continue
         c = CHAP.match(line)
         if c:
-            chaps.append(c.group(1))
+            chaps.append(chap_label(c))
     if not arts and not chaps:
-        # 逐章拆檔法規（如檢修基準）：hub 檔無章標題，改讀同名子資料夾各章檔之 H1
-        # （子資料夾與 hub 主檔同名，含編號前綴，見 CLAUDE.md「資產資料夾規則」）
-        split_dir = md.parent / md.stem
-        if split_dir.is_dir():
-            for f in sorted(split_dir.glob("第*章*.md")):
-                h1 = f.read_text(encoding="utf-8").split("\n", 1)[0]
-                c = CHAP_H1.match(h1)
-                if c:
-                    chaps.append(c.group(1))
+        # 逐章拆檔法規（如檢修基準）：hub 檔只有章目錄表，章標題在各章檔之 H1。
+        # 各章檔與 hub 同層（見 CLAUDE.md「法規資料夾的內容」）。
+        for f in sorted(md.parent.glob("第*章*.md")):
+            h1 = f.read_text(encoding="utf-8").split("\n", 1)[0]
+            c = CHAP_H1.match(h1)
+            if c:
+                chaps.append(chap_label(c))
     def dedup(seq):  # 保序去重（statutes 偶有重複標題）
         seen, out = set(), []
         for x in seq:
@@ -86,7 +93,7 @@ def main():
            "> ⚠️ 條號隨修法可能變動，修法後請重跑腳本更新。",
            ""]
     for name, fn in TOP5:
-        md = STATUTES / fn
+        md = statute_path(fn)
         if not md.exists():
             print(f"WARN 找不到 {md}", file=sys.stderr)
             continue
@@ -96,7 +103,7 @@ def main():
         if unit == "條":
             out.append("- 條號：" + "、".join(items))
         else:
-            out.append("- 章：" + "、".join(f"第{c}章" for c in items))
+            out.append("- 章：" + "、".join(items))
         out.append("")
     (ROOT / "reference" / "索引" / "法規條文清單索引.md").write_text("\n".join(out), encoding="utf-8")
     print("已寫出 reference/索引/法規條文清單索引.md")
