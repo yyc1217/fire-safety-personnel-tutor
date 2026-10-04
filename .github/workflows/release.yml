@@ -49,6 +49,22 @@ jobs:
           sha256sum "${name}.zip" > "${name}.zip.sha256"
           ls -lh "${name}.zip"
 
+      - name: 打包通用版（其他 AI agent 用）
+        if: steps.ver.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          name="fire-safety-personnel-tutor-agent-skills-v${VERSION}"
+          stage="$RUNNER_TEMP/agent-skills"
+          mkdir -p "$stage"
+          # 通用版不含 plugin manifest，根目錄另附安裝腳本 install.py
+          git archive --format=tar --prefix=fire-safety-personnel-tutor/ HEAD -- . \
+            ':!.github' ':!.claude' ':!.claude-plugin' | tar -x -C "$stage"
+          cp scripts/install_agent_skills.py "$stage/fire-safety-personnel-tutor/install.py"
+          (cd "$stage" && zip -qr -X "$GITHUB_WORKSPACE/${name}.zip" fire-safety-personnel-tutor)
+          sha256sum "${name}.zip" > "${name}.zip.sha256"
+          ls -lh "${name}.zip"
+
       - name: 產生 release notes
         if: steps.ver.outputs.exists == 'false'
         env:
@@ -88,6 +104,14 @@ jobs:
             echo "claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace"
             echo '```'
             echo
+            echo "**方法三：其他 AI agent（通用版 Agent Skills）**"
+            echo
+            echo "下載 \`fire-safety-personnel-tutor-agent-skills-v${VERSION}.zip\`，解壓縮後執行（\`--target\` 換成該 agent 讀取 skill 的目錄）："
+            echo
+            echo '```bash'
+            echo "python3 fire-safety-personnel-tutor/install.py --target ~/.agents/skills"
+            echo '```'
+            echo
             echo "完整說明見 [README](https://github.com/${REPO}#安裝)。"
           } > release-notes.md
           cat release-notes.md
@@ -102,6 +126,8 @@ jobs:
           gh release create "$TAG" \
             "fire-safety-personnel-tutor-v${VERSION}.zip" \
             "fire-safety-personnel-tutor-v${VERSION}.zip.sha256" \
+            "fire-safety-personnel-tutor-agent-skills-v${VERSION}.zip" \
+            "fire-safety-personnel-tutor-agent-skills-v${VERSION}.zip.sha256" \
             --target "$GITHUB_SHA" \
             --title "$TITLE" \
             --notes-file release-notes.md

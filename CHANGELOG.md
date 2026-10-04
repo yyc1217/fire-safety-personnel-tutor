@@ -18,10 +18,12 @@
 
 # 版本紀錄
 
-## [1.9.7] - 2026-10-04 — 新增 GitHub Release 自動發布與 zip 下載安裝
+## [1.9.7] - 2026-10-04 — 新增 GitHub Release 自動發布與 zip 下載安裝（含其他 AI agent 通用版）
 
 - 新增 `.github/workflows/release.yml`：`plugin.json` 之 `version` 變動推上 `main` 時，自動建立 `v<版本>` tag 與 GitHub Release，附 `fire-safety-personnel-tutor-v<版本>.zip`（不含 `.github/`、`.claude/`）與 `.sha256`；release notes 取自本檔對應版本條目並附安裝方式。該版 tag 已存在時略過；亦可手動觸發。
-- README「安裝」改為兩種方法：marketplace 安裝、自 Releases 下載 zip 以本機路徑安裝（含 `--plugin-dir` 試用與 zip 版更新方式）。
+- Release 另附通用版 `fire-safety-personnel-tutor-agent-skills-v<版本>.zip`（另含 `install.py`，不含 `.claude-plugin/`）與 `.sha256`，供 Claude Code 以外支援 Agent Skills 之 agent 使用。
+- 新增 `scripts/install_agent_skills.py`（通用版 zip 中為根目錄之 `install.py`）：將 15 個 skill 複製至 `--target` 指定目錄，複本中 `${CLAUDE_PLUGIN_ROOT}` 代換為資料根目錄（`…/skills/` 改指安裝目錄）、`${user_config.*}` 代換為 `--level`／`--weakness-tracking`／`--data-dir` 之值、`${CLAUDE_SESSION_ID}` 代換為空白；frontmatter 移除 `allowed-tools`、`context`、`background`；內文開頭加註通用版環境說明（資料根目錄、`$ARGUMENTS` 與 `/fs-*` 之意義）。
+- README「安裝」改為三種方法：marketplace 安裝、自 Releases 下載 zip 以本機路徑安裝（含 `--plugin-dir` 試用與 zip 版更新方式）、其他 AI agent 以通用版 zip 安裝。
 - `skills/`、`reference/`、`corpus/`、`statutes/` 內容未動。
 
 ## [1.9.6] - 2026-08-18 — 2_03 檢修基準之檢查方法／判定方法／注意事項 heading 降為清單項
