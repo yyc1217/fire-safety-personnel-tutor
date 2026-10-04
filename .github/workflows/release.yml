@@ -1,0 +1,107 @@
+name: release
+
+# plugin.json 之 version 一變動（PR 合併進 main）即自動發布對應的 GitHub Release；
+# 該版 tag 已存在時略過。亦可於 Actions 頁面手動觸發，補發目前版本。
+on:
+  push:
+    branches: [main]
+    paths:
+      - .claude-plugin/plugin.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: 打包並發布 GitHub Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 讀取版本號
+        id: ver
+        run: |
+          version=$(jq -r .version .claude-plugin/plugin.json)
+          tag="v${version}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" > /dev/null; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::${tag} 已發布，略過。"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: 打包 plugin
+        if: steps.ver.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          name="fire-safety-personnel-tutor-v${VERSION}"
+          # .github（CI）與 .claude（維護者指令）不隨 plugin 發布
+          git archive --format=zip --prefix=fire-safety-personnel-tutor/ \
+            -o "${name}.zip" HEAD -- . ':!.github' ':!.claude'
+          sha256sum "${name}.zip" > "${name}.zip.sha256"
+          ls -lh "${name}.zip"
+
+      - name: 產生 release notes
+        if: steps.ver.outputs.exists == 'false'
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: |
+          heading=$(grep -m1 -F "## [${VERSION}]" CHANGELOG.md || true)
+          title="v${VERSION}"
+          case "$heading" in
+            *" — "*) title="v${VERSION} — ${heading#* — }" ;;
+          esac
+          echo "TITLE=${title}" >> "$GITHUB_ENV"
+          {
+            echo "## 變更內容"
+            echo
+            awk -v h="## [${VERSION}]" '
+              index($0, h) == 1 { f = 1; next }
+              f && /^## \[/ { exit }
+              f { print }
+            ' CHANGELOG.md
+            echo
+            echo "## 安裝"
+            echo
+            echo "**方法一：從 marketplace 安裝（建議，可隨新版更新）**"
+            echo
+            echo '```bash'
+            echo "claude plugin marketplace add https://github.com/${REPO}"
+            echo "claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace"
+            echo '```'
+            echo
+            echo "**方法二：下載本版 zip 離線安裝**"
+            echo
+            echo "下載下方 Assets 的 \`fire-safety-personnel-tutor-v${VERSION}.zip\`，解壓縮後於解壓縮所在目錄執行："
+            echo
+            echo '```bash'
+            echo "claude plugin marketplace add ./fire-safety-personnel-tutor"
+            echo "claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace"
+            echo '```'
+            echo
+            echo "完整說明見 [README](https://github.com/${REPO}#安裝)。"
+          } > release-notes.md
+          cat release-notes.md
+
+      - name: 發布 release
+        if: steps.ver.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          gh release create "$TAG" \
+            "fire-safety-personnel-tutor-v${VERSION}.zip" \
+            "fire-safety-personnel-tutor-v${VERSION}.zip.sha256" \
+            --target "$GITHUB_SHA" \
+            --title "$TITLE" \
+            --notes-file release-notes.md

@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-1.9.6-blue.svg)
+![Version](https://img.shields.io/badge/version-1.9.7-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -59,10 +59,27 @@
 
 ## 安裝
 
+**方法一：從 marketplace 安裝（建議，可隨新版更新）**
+
 ```bash
 claude plugin marketplace add https://github.com/yyc1217/fire-safety-personnel-tutor
 claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace
 ```
+
+**方法二：從 [GitHub Releases](https://github.com/yyc1217/fire-safety-personnel-tutor/releases) 下載 zip 安裝**
+
+1. 開啟 [Releases 頁面](https://github.com/yyc1217/fire-safety-personnel-tutor/releases/latest)，下載 Assets 中的 `fire-safety-personnel-tutor-v<版本>.zip`（約 155 MB，不含 git 歷史；同頁附 `.sha256` 供核對檔案完整性）。
+2. 解壓縮，得到 `fire-safety-personnel-tutor/` 資料夾。
+3. 於該資料夾**所在的目錄**執行：
+
+   ```bash
+   claude plugin marketplace add ./fire-safety-personnel-tutor
+   claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace
+   ```
+
+   只想先試用、不安裝：`claude --plugin-dir ./fire-safety-personnel-tutor`，僅當次 session 有效。
+
+zip 安裝**不會自動收到新版**：新版發布後下載新 zip、覆蓋同一資料夾，再執行 `claude plugin marketplace update fire-safety-personnel-tutor-marketplace` 並於 `/plugin` 更新。每版的變更內容見 Releases 頁面或 [CHANGELOG](CHANGELOG.md)。
 
 安裝／啟用時 Claude Code 會跳出**設定對話框**，可直接填應考等別（師／士）、弱點記錄模式與學習資料目錄；**留空也沒關係**——初次使用任一功能時會詢問並記住（`/fs-setup` 或 `/plugin` 設定對話框都可再改）。學習進度存於使用者本機 `~/.fire-safety-tutor/`（可改），plugin 目錄唯讀。
 

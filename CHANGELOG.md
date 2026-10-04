@@ -18,6 +18,12 @@
 
 # 版本紀錄
 
+## [1.9.7] - 2026-10-04 — 新增 GitHub Release 自動發布與 zip 下載安裝
+
+- 新增 `.github/workflows/release.yml`：`plugin.json` 之 `version` 變動推上 `main` 時，自動建立 `v<版本>` tag 與 GitHub Release，附 `fire-safety-personnel-tutor-v<版本>.zip`（不含 `.github/`、`.claude/`）與 `.sha256`；release notes 取自本檔對應版本條目並附安裝方式。該版 tag 已存在時略過；亦可手動觸發。
+- README「安裝」改為兩種方法：marketplace 安裝、自 Releases 下載 zip 以本機路徑安裝（含 `--plugin-dir` 試用與 zip 版更新方式）。
+- `skills/`、`reference/`、`corpus/`、`statutes/` 內容未動。
+
 ## [1.9.6] - 2026-08-18 — 2_03 檢修基準之檢查方法／判定方法／注意事項 heading 降為清單項
 
 - 全 28 章以 `A.`／`a.` 為項目符號者，句點後補一個半形空白（2283 處），與第 24 章之一原有寫法一致；`（A）`／`（a）` 無句點，未動。
