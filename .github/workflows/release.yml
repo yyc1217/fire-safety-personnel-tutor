@@ -1,12 +1,8 @@
 name: release
 
-# plugin.json 之 version 一變動（PR 合併進 main）即自動發布對應的 GitHub Release；
-# 該版 tag 已存在時略過。亦可於 Actions 頁面手動觸發，補發目前版本。
+# 僅手動觸發：於 Actions 頁面選 release → Run workflow（分支選 main），
+# 依 plugin.json 之 version 打包並發布 v<版本> GitHub Release。該版 tag 已存在時失敗、不覆寫。
 on:
-  push:
-    branches: [main]
-    paths:
-      - .claude-plugin/plugin.json
   workflow_dispatch:
 
 permissions:
@@ -20,6 +16,7 @@ jobs:
   release:
     name: 打包並發布 GitHub Release
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
 
@@ -31,14 +28,11 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "tag=${tag}" >> "$GITHUB_OUTPUT"
           if git ls-remote --exit-code --tags origin "refs/tags/${tag}" > /dev/null; then
-            echo "exists=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::${tag} 已發布，略過。"
-          else
-            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::error::${tag} 已發布。請先升 plugin.json 之 version 再執行。"
+            exit 1
           fi
 
       - name: 打包 plugin
-        if: steps.ver.outputs.exists == 'false'
         env:
           VERSION: ${{ steps.ver.outputs.version }}
         run: |
@@ -50,7 +44,6 @@ jobs:
           ls -lh "${name}.zip"
 
       - name: 打包通用版（其他 AI agent 用）
-        if: steps.ver.outputs.exists == 'false'
         env:
           VERSION: ${{ steps.ver.outputs.version }}
         run: |
@@ -66,7 +59,6 @@ jobs:
           ls -lh "${name}.zip"
 
       - name: 產生 release notes
-        if: steps.ver.outputs.exists == 'false'
         env:
           VERSION: ${{ steps.ver.outputs.version }}
           REPO: ${{ github.repository }}
@@ -117,7 +109,6 @@ jobs:
           cat release-notes.md
 
       - name: 發布 release
-        if: steps.ver.outputs.exists == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.ver.outputs.tag }}
