@@ -42,6 +42,12 @@
 
 轉檔後均需人工核對（CLAUDE.md：OCR 免責與查證、公式一律 LaTeX、附表處理原則）。
 
+## 發布（GitHub Release）
+
+| 腳本 | 用途 |
+|------|------|
+| `install_agent_skills.py` | **使用者端**安裝腳本：把 `skills/` 安裝到 Claude Code 以外之 agent 的 skills 目錄（`--target`），並代換 `${CLAUDE_PLUGIN_ROOT}`、`${user_config.*}` 等 Claude Code 專屬變數。由 `.github/workflows/release.yml` 複製為通用版 zip 根目錄之 `install.py`；用法見 README「安裝」方法三。 |
+
 ## 附註
 
 - `corpus/pdf/`（37 MB）與 各法規資料夾之 `原始檔案/`（48 MB）為官方原卷／附表原始檔，屬**資料資產**，刻意入庫供 AI 與使用者查對，非垃圾大檔。

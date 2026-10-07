@@ -1,0 +1,124 @@
+name: release
+
+# 僅手動觸發：於 Actions 頁面選 release → Run workflow（分支選 main），
+# 依 plugin.json 之 version 打包並發布 v<版本> GitHub Release。該版 tag 已存在時失敗、不覆寫。
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: 打包並發布 GitHub Release
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 讀取版本號
+        id: ver
+        run: |
+          version=$(jq -r .version .claude-plugin/plugin.json)
+          tag="v${version}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" > /dev/null; then
+            echo "::error::${tag} 已發布。請先升 plugin.json 之 version 再執行。"
+            exit 1
+          fi
+
+      - name: 打包 plugin
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          name="fire-safety-personnel-tutor-v${VERSION}"
+          # .github（CI）與 .claude（維護者指令）不隨 plugin 發布
+          git archive --format=zip --prefix=fire-safety-personnel-tutor/ \
+            -o "${name}.zip" HEAD -- . ':!.github' ':!.claude'
+          sha256sum "${name}.zip" > "${name}.zip.sha256"
+          ls -lh "${name}.zip"
+
+      - name: 打包通用版（其他 AI agent 用）
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          name="fire-safety-personnel-tutor-agent-skills-v${VERSION}"
+          stage="$RUNNER_TEMP/agent-skills"
+          mkdir -p "$stage"
+          # 通用版不含 plugin manifest，根目錄另附安裝腳本 install.py
+          git archive --format=tar --prefix=fire-safety-personnel-tutor/ HEAD -- . \
+            ':!.github' ':!.claude' ':!.claude-plugin' | tar -x -C "$stage"
+          cp scripts/install_agent_skills.py "$stage/fire-safety-personnel-tutor/install.py"
+          (cd "$stage" && zip -qr -X "$GITHUB_WORKSPACE/${name}.zip" fire-safety-personnel-tutor)
+          sha256sum "${name}.zip" > "${name}.zip.sha256"
+          ls -lh "${name}.zip"
+
+      - name: 產生 release notes
+        env:
+          VERSION: ${{ steps.ver.outputs.version }}
+          REPO: ${{ github.repository }}
+        run: |
+          heading=$(grep -m1 -F "## [${VERSION}]" CHANGELOG.md || true)
+          title="v${VERSION}"
+          case "$heading" in
+            *" — "*) title="v${VERSION} — ${heading#* — }" ;;
+          esac
+          echo "TITLE=${title}" >> "$GITHUB_ENV"
+          {
+            echo "## 變更內容"
+            echo
+            awk -v h="## [${VERSION}]" '
+              index($0, h) == 1 { f = 1; next }
+              f && /^## \[/ { exit }
+              f { print }
+            ' CHANGELOG.md
+            echo
+            echo "## 安裝"
+            echo
+            echo "**方法一：從 marketplace 安裝（建議，可隨新版更新）**"
+            echo
+            echo '```bash'
+            echo "claude plugin marketplace add https://github.com/${REPO}"
+            echo "claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace"
+            echo '```'
+            echo
+            echo "**方法二：下載本版 zip 離線安裝**"
+            echo
+            echo "下載下方 Assets 的 \`fire-safety-personnel-tutor-v${VERSION}.zip\`，解壓縮後於解壓縮所在目錄執行："
+            echo
+            echo '```bash'
+            echo "claude plugin marketplace add ./fire-safety-personnel-tutor"
+            echo "claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace"
+            echo '```'
+            echo
+            echo "**方法三：其他 AI agent（通用版 Agent Skills）**"
+            echo
+            echo "下載 \`fire-safety-personnel-tutor-agent-skills-v${VERSION}.zip\`，解壓縮後執行（\`--target\` 換成該 agent 讀取 skill 的目錄）："
+            echo
+            echo '```bash'
+            echo "python3 fire-safety-personnel-tutor/install.py --target ~/.agents/skills"
+            echo '```'
+            echo
+            echo "完整說明見 [README](https://github.com/${REPO}#安裝)。"
+          } > release-notes.md
+          cat release-notes.md
+
+      - name: 發布 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          VERSION: ${{ steps.ver.outputs.version }}
+        run: |
+          gh release create "$TAG" \
+            "fire-safety-personnel-tutor-v${VERSION}.zip" \
+            "fire-safety-personnel-tutor-v${VERSION}.zip.sha256" \
+            "fire-safety-personnel-tutor-agent-skills-v${VERSION}.zip" \
+            "fire-safety-personnel-tutor-agent-skills-v${VERSION}.zip.sha256" \
+            --target "$GITHUB_SHA" \
+            --title "$TITLE" \
+            --notes-file release-notes.md

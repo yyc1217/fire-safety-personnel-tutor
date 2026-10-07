@@ -1,7 +1,7 @@
 # fire-safety-personnel-tutor
 
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Version](https://img.shields.io/badge/version-1.9.6-blue.svg)
+![Version](https://img.shields.io/badge/version-1.9.7-blue.svg)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-plugin-D97757.svg)
 ![語言](https://img.shields.io/badge/%E8%AA%9E%E8%A8%80-%E7%B9%81%E9%AB%94%E4%B8%AD%E6%96%87-brightgreen.svg)
 
@@ -59,10 +59,42 @@
 
 ## 安裝
 
+**方法一：從 marketplace 安裝（建議，可隨新版更新）**
+
 ```bash
 claude plugin marketplace add https://github.com/yyc1217/fire-safety-personnel-tutor
 claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace
 ```
+
+**方法二：從 [GitHub Releases](https://github.com/yyc1217/fire-safety-personnel-tutor/releases) 下載 zip 安裝**
+
+1. 開啟 [Releases 頁面](https://github.com/yyc1217/fire-safety-personnel-tutor/releases/latest)，下載 Assets 中的 `fire-safety-personnel-tutor-v<版本>.zip`（約 155 MB，不含 git 歷史；同頁附 `.sha256` 供核對檔案完整性）。
+2. 解壓縮，得到 `fire-safety-personnel-tutor/` 資料夾。
+3. 於該資料夾**所在的目錄**執行：
+
+   ```bash
+   claude plugin marketplace add ./fire-safety-personnel-tutor
+   claude plugin install fire-safety-personnel-tutor@fire-safety-personnel-tutor-marketplace
+   ```
+
+   只想先試用、不安裝：`claude --plugin-dir ./fire-safety-personnel-tutor`，僅當次 session 有效。
+
+zip 安裝**不會自動收到新版**：新版發布後下載新 zip、覆蓋同一資料夾，再執行 `claude plugin marketplace update fire-safety-personnel-tutor-marketplace` 並於 `/plugin` 更新。每版的變更內容見 Releases 頁面或 [CHANGELOG](CHANGELOG.md)。
+
+**方法三：其他 AI agent（通用版 Agent Skills）**
+
+Codex、Gemini CLI、Cursor、GitHub Copilot 等支援 Agent Skills（`SKILL.md`）格式的 agent，請下載 Releases 中的 `fire-safety-personnel-tutor-agent-skills-v<版本>.zip`，解壓縮後執行（需 Python 3.8 以上）：
+
+```bash
+python3 fire-safety-personnel-tutor/install.py --target ~/.agents/skills
+```
+
+- `--target` 換成該 agent 讀取 skill 的目錄（各 agent 的路徑不同，以其文件為準；可重複指定多個）。
+- 可選參數：`--level 師|士`、`--weakness-tracking auto|notes|none`、`--data-dir <路徑>`（預設 `~/.fire-safety-tutor`）；未給的設定於首次使用時由 agent 詢問。
+- 安裝腳本把 15 個 skill 複製到 `--target`，並將其中 Claude Code 專屬的變數（`${CLAUDE_PLUGIN_ROOT}`、使用者設定）代換成實際路徑與設定值。題庫與法規留在解壓縮的資料夾，**安裝後請勿搬移或刪除該資料夾**；搬移後重新執行一次即可。
+- 與 Claude Code 版的差異：`/fs-*` 指令是否能以斜線叫用，視各 agent 支援而定（不支援時直接說「抽考」「模擬考」等即可）；`/fs-mock` 不會在獨立子代理中命題；`allowed-tools` 權限宣告不生效。
+
+> 已 clone 本 repo 者，也可以直接執行 `python3 scripts/install_agent_skills.py --target <目錄>`。
 
 安裝／啟用時 Claude Code 會跳出**設定對話框**，可直接填應考等別（師／士）、弱點記錄模式與學習資料目錄；**留空也沒關係**——初次使用任一功能時會詢問並記住（`/fs-setup` 或 `/plugin` 設定對話框都可再改）。學習進度存於使用者本機 `~/.fire-safety-tutor/`（可改），plugin 目錄唯讀。
 
